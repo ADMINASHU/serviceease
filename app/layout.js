@@ -1,3 +1,6 @@
+// app/layout.js (or `app/root.js` depending on your setup)
+import { useEffect } from 'react';
+import '../lib/cron'; // Initialize the cron job
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -18,6 +21,9 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  useEffect(() => {
+    console.log('Cron job initialized');
+  }, []);
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
@@ -26,3 +32,5 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+
