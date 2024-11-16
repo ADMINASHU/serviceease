@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from "axios";
 
 export default function DataPage() {
-  const [data, setData] = useState([]);
+
 
   useEffect(() => {
     const fetchCookies = async () => {
@@ -30,7 +30,8 @@ export default function DataPage() {
       const send = { payload, cookies };
       try {
         const response2 = await axios.post(apiURL2, send);
-        setData(response2.data);
+        // setData(response2.data);
+        return null;
         // console.log("page: " + data);
       } catch (err) {
         console.error(err);
