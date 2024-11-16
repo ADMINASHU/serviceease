@@ -3,93 +3,71 @@ import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <p>HOME</p>
   );
+}
+//.......................
+
+// app/api/sync/route.js
+import connectToDatabase from '../../../lib/mongodb';
+import Data from '../../../models/Data';
+
+export async function POST(request) {
+  await connectToDatabase();
+
+  const response = await fetch('YOUR_EXTERNAL_API_ENDPOINT');
+  const apiData = await response.json();
+
+  // Process and store the data in MongoDB
+  const transformedData = apiData.map(item => ({
+    callNo: item[0],
+    natureOfComplaint: item[1],
+    callDate: item[3],
+    callStartDate: item[4],
+    callEndDate: item[5],
+    engineerName: item[5],
+    engineerContact: item[6],
+    serialNo: item[7],
+    productCategory: item[7],
+    productSeries: item[7],
+    productName: item[7],
+    productModel: item[7],
+    unitStatus: item[8],
+    startDate: item[8],
+    endDate: item[8],
+    customerName: item[9],
+    customerAddress: item[9],
+    phone: item[10],
+    email: item[10],
+    contactPerson: item[11],
+    contactPersonPhone: item[11],
+    contactPersonDesignation: item[11],
+    region: item[12],
+    branch: item[12],
+    city: item[13],
+    state: item[13],
+    servicePersonRemarks: item[14],
+    closedDate: item[15],
+    duration: item[16],
+    complaintId: item[17],
+    originalComplaintId: item[18],
+    status: item[19],
+    assignedTo: item[20],
+    month: item[21],
+    year: item[22],
+    count: item[23],
+    realStatus: item[24],
+    isPending: item[25]
+  }));
+
+  for (const item of transformedData) {
+    await Data.findOneAndUpdate({ callNo: item.callNo }, item, { upsert: true });
+  }
+
+  return new Response(JSON.stringify({ message: 'Data synced successfully' }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }

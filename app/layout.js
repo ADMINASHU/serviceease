@@ -1,4 +1,4 @@
-// app/layout.js (or `app/root.js` depending on your setup)
+"use client"
 import { useEffect } from 'react';
 import '../lib/cron'; // Initialize the cron job
 import localFont from "next/font/local";
