@@ -1,6 +1,6 @@
 // app/api/sync/route.js
 import connectToDatabase from "../../../lib/mongodb";
-import Data from "../../../models/Data";
+import Data from "@/app/models/Data";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
@@ -17,7 +17,6 @@ export async function POST() {
     }
   }
   await connectToDatabase();
-  const cookies = await getCookies();
   //.....................................................................................................
   const parseHTMLTable = (html) => {
     var data = [];
@@ -38,6 +37,7 @@ export async function POST() {
     return data;
   };
   try {
+    const cookies = await getCookies();
     const payload = {
       month: 11,
       year: 2024,
