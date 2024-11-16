@@ -4,23 +4,23 @@ import Data from "@/app/models/Data";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-export async function POST() {
-  async function getCookies() {
-    try {
-      const response = await axios.get(
-        "https://script.google.com/macros/s/AKfycby8jP7TJO0iP-rxj4rTCfRwRq1nDoJzoqylmqKLOrv9MaEonusYnlh5q5DLjJtesV_Qbg/exec"
-      );
-      return NextResponse.json(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      return NextResponse.error();
-    }
+async function getCookies() {
+  try {
+    const URL = process.env.APPSCRIPT_URL;
+    const response = await axios.get(URL);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw new Error("Error fetching data");
   }
+}
+
+export async function POST() {
   await connectToDatabase();
-  //.....................................................................................................
+
   const parseHTMLTable = (html) => {
     var data = [];
-    var tableRegex = /<table[^>]*>(.*?)<\/table>/s; // Changed to stop after the first table
+    var tableRegex = /<table[^>]*>(.*?)<\/table>/s;
     var rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;
     var cellRegex = /<t[dh][^>]*>(.*?)<\/t[dh]>/gs;
     var tableMatch = tableRegex.exec(html);
@@ -36,6 +36,7 @@ export async function POST() {
     }
     return data;
   };
+
   try {
     const cookies = await getCookies();
     const payload = {
@@ -50,9 +51,7 @@ export async function POST() {
       "http://serviceease.techser.com/live/index.php/calls/callsOnFilter",
       payload,
       {
-        // method: "post",
         headers: {
-          //   "Authorization": "Basic " + Utilities.base64Encode("admin:password"),
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           Accept: "*/*",
           Connection: "keep-alive",
@@ -63,12 +62,9 @@ export async function POST() {
       }
     );
     const table = parseHTMLTable(response.data);
-    const data = NextResponse.json(table);
-    // return NextResponse.json(JSON.stringify(table, null, 2));
-    console.log(data);
 
     // Process and store the data in MongoDB
-    const transformedData = data.map((item) => ({
+    const transformedData = table.map((item) => ({
       blank: item[0],
       callNo: item[1],
       faultReport: item[2],
@@ -98,5 +94,8 @@ export async function POST() {
   } catch (error) {
     return NextResponse.json({ error: "Error fetching data from the server" }, { status: 500 });
   }
-  //.....................................................................................................
+}
+
+export async function GET() {
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
