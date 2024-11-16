@@ -43,11 +43,6 @@ export default function DataPage() {
   return (
     <main>
       <h1>Data from API</h1>
-      <ul>
-        {data.map((item) => (
-          <li key={item._id}>{JSON.stringify(item)}</li>
-        ))}
-      </ul>
     </main>
   );
 }
