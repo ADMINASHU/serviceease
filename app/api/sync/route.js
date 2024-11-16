@@ -1,23 +1,12 @@
-// app/api/sync/route.js
+
 import connectToDatabase from "../../../lib/mongodb";
 import Data from "@/app/models/Data";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-async function getCookies() {
-  try {
-    const URL = process.env.APPSCRIPT_URL;
-    const response = await axios.get(URL);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    throw new Error("Error fetching data");
-  }
-}
-
-export async function POST() {
+export async function POST(request) {
   await connectToDatabase();
-
+  
   const parseHTMLTable = (html) => {
     var data = [];
     var tableRegex = /<table[^>]*>(.*?)<\/table>/s;
@@ -38,15 +27,8 @@ export async function POST() {
   };
 
   try {
-    const cookies = await getCookies();
-    const payload = {
-      month: 11,
-      year: 2024,
-      region: "",
-      branch: "",
-      type: "All",
-      callstatus: "",
-    };
+    const { payload, cookies } = await request.json();
+
     const response = await axios.post(
       "http://serviceease.techser.com/live/index.php/calls/callsOnFilter",
       payload,
