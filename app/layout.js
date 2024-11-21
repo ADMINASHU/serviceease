@@ -1,6 +1,4 @@
-"use client"
-import { useEffect } from 'react';
-import '../lib/cron'; 
+
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -18,9 +16,6 @@ const geistMono = localFont({
 
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    console.log('Cron job initialized');
-  }, []);
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
