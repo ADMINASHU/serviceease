@@ -3,9 +3,17 @@ import Data from '../../models/Data';
 import axios from 'axios';
 import { NextResponse } from 'next/server';
 import CookieModel from '../../models/CookieModel'; // Assume you have a model to store cookies
-// import {fetchCookies} from '../../../lib/fetchCookies'; // Assume you have a function to fetch cookies
-import fetchCookies from '../../../lib/fetchCookies';
 
+const fetchCookies = async () => {
+  try {
+    const response = await axios.get(`${process.env.BASE_URL}/api/cookies`); // Use the full URL
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching cookies:", error);
+    throw new Error("Error fetching cookies");
+  }
+};
 
 export async function POST(request) {
   await connectToDatabase();
@@ -32,8 +40,11 @@ export async function POST(request) {
   try {
     const { payload } = await request.json();
     const existingCookie = await CookieModel.findOne(); // Fetch the stored cookie
+    console.log(existingCookie);
 
-    let cookies = existingCookie ? existingCookie.cookies : await fetchCookies(); // Fetch new cookies if not stored
+    let cookies = existingCookie ? existingCookie.cookies : null// Fetch new cookies if not stored
+
+    console.log("coo: " + cookies);
 
     const makeRequest = async (cookies) => {
       return await axios.post(
@@ -42,11 +53,11 @@ export async function POST(request) {
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            Accept: '*/*',
-            Connection: 'keep-alive',
-            Referer: 'http://serviceease.techser.com/live/index.php/calls/index/All',
+            "Accept": '*/*',
+            "Connection": 'keep-alive',
+            "Referer": 'http://serviceease.techser.com/live/index.php/calls/index/All',
             'X-Requested-With': 'XMLHttpRequest',
-            Cookie: cookies,
+            "Cookie": cookies,
           },
         }
       );
@@ -56,10 +67,18 @@ export async function POST(request) {
 
     try {
       response = await makeRequest(cookies);
+
+      console.log(response);
     } catch (error) {
+      console.log("..............error:" + error);
       if (error.response && error.response.status === 401) { // If unauthorized, fetch new cookies
+        console.log("running...");
         cookies = await fetchCookies();
-        await CookieModel.updateOne({}, { cookies }, { upsert: true }); // Update the stored cookie
+        
+        // Log the result of the update operation
+        const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true }); // Update the stored cookie
+        console.log("Cookies update result:", updateResult);
+        
         response = await makeRequest(cookies); // Retry the request with new cookies
       } else {
         throw error;
