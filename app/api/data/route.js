@@ -44,7 +44,7 @@ export async function POST(request) {
 
     let cookies = existingCookie ? existingCookie.cookies : await fetchCookies(); // Fetch new cookies if not stored
 
-    console.log("coo: " + cookies);
+    // console.log("coo: " + cookies);
 
     const makeRequest = async (cookies) => {
       return await axios.post(
@@ -67,27 +67,28 @@ export async function POST(request) {
 
     try {
       response = await makeRequest(cookies);
-      const getCookies = response.headers["set-cookie"]; // Log the cookies
-      console.log("Cookies:", getCookies); // Check if any of the cookies contains "deleted"
+      const getCookies = response.headers["set-cookie"];
+      // Log the cookies
+      // console.log("Cookies:", getCookies);
+      // Check if any of the cookies contains "deleted"
       const hasDeleted = getCookies && getCookies.some((cookie) => cookie.includes("deleted"));
-      console.log("Has deleted cookie:", hasDeleted);
+      // console.log("Has deleted cookie:", hasDeleted);
       if (hasDeleted) {
         // If unauthorized, fetch new cookies
-        console.log("running...");
+        // console.log("running...");
         cookies = await fetchCookies();
 
         // Log the result of the update operation
         const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true }); // Update the stored cookie
-        console.log("Cookies update result:", updateResult);
+        // console.log("Cookies update result:", updateResult);
 
         response = await makeRequest(cookies); // Retry the request with new cookies
-      } 
-
+      }
     } catch (error) {
-      console.log("..............error:" + error);
+      // console.log("..............error:" + error);
       if (error.response && error.response.status === 401) {
         // If unauthorized, fetch new cookies
-        console.log("running...");
+        // console.log("running...");
         cookies = await fetchCookies();
 
         // Log the result of the update operation
