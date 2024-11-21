@@ -68,7 +68,7 @@ export default function ServiceEasePage() {
       const apiURL2 = "/api/data";
       const promises = [];
 
-      for (let month = 8; month < 13; month++) {
+      for (let month = 7; month < 13; month++) {
         const payload = {
           month: month,
           year: 2024,
@@ -81,14 +81,7 @@ export default function ServiceEasePage() {
       }
       const response = await Promise.all(promises);
 
-      // setResult(responses.data);
-      if (!response.data) {
-        return NextResponse.json({ error: "cookies not valid" }, { status: 401 });
-      }else{
-
-        return NextResponse.json({ message: "ok" }, { status: 200 });
-        
-      }
+      return null;
     } catch (err) {
       console.error(err);
     }
