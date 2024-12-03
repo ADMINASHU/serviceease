@@ -1,9 +1,9 @@
 // app/models/Data.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const DataSchema = new mongoose.Schema({
   blank: String,
-  callNo: String,
+  callNo: { type: String, unique: true },
   faultReport: String,
   callDate: String,
   callStartEndDate: String,
@@ -18,4 +18,4 @@ const DataSchema = new mongoose.Schema({
   servicePersonRemarks: String,
 });
 
-export default mongoose.models.Data || mongoose.model('Data', DataSchema);
+export default mongoose.models.Data || mongoose.model("Data", DataSchema);

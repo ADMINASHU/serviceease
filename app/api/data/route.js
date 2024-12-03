@@ -1,13 +1,13 @@
 import connectToDatabase from "../../../lib/mongodb";
-import Data from "../../models/Data";
+import Data from "@/app/models/Data";
 import axios from "axios";
 import { NextResponse } from "next/server";
 import CookieModel from "../../models/CookieModel"; // Assume you have a model to store cookies
 
 const fetchCookies = async () => {
   try {
-    const response = await axios.get(`${process.env.BASE_URL}/api/cookies`); // Use the full URL
-    console.log(response.data);
+    const response = await axios.get(`${process.env.BASE_URL}/api/cookies`);
+    console.log("Fetched cookies:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching cookies:", error);
@@ -16,37 +16,40 @@ const fetchCookies = async () => {
 };
 
 export async function POST(request) {
-  await connectToDatabase();
-
-  const parseHTMLTable = (html) => {
-    var data = [];
-    var tableRegex = /<table[^>]*>(.*?)<\/table>/s;
-    var rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;
-    var cellRegex = /<t[dh][^>]*>(.*?)<\/t[dh]>/gs;
-    var tableMatch = tableRegex.exec(html);
-    if (tableMatch) {
-      var rows = tableMatch[1].match(rowRegex);
-      rows.forEach(function (row) {
-        var cells = row.match(cellRegex);
-        var rowData = cells.map(function (cell) {
-          return cell.replace(/<.*?>/g, "").trim();
-        });
-        data.push(rowData);
-      });
-    }
-    return data;
-  };
-
   try {
-    const { payload } = await request.json();
-    const existingCookie = await CookieModel.findOne(); // Fetch the stored cookie
-    console.log(existingCookie);
+    const payload = await request.json();
+    await connectToDatabase();
+    console.log("Database connected successfully in POST request");
 
-    let cookies = existingCookie ? existingCookie.cookies : await fetchCookies(); // Fetch new cookies if not stored
+    const parseHTMLTable = (html) => {
+      var data = [];
+      var tableRegex = /<table[^>]*>(.*?)<\/table>/s;
+      var rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;
+      var cellRegex = /<t[dh][^>]*>(.*?)<\/t[dh]>/gs;
+      var tableMatch = tableRegex.exec(html);
+      if (tableMatch) {
+        var rows = tableMatch[1].match(rowRegex);
+        rows.forEach(function (row) {
+          var cells = row.match(cellRegex);
+          var rowData = cells.map(function (cell) {
+            return cell.replace(/<.*?>/g, "").trim();
+          });
+          data.push(rowData);
+        });
+      }
+      return data;
+    };
 
-    // console.log("coo: " + cookies);
+    const existingCookie = await CookieModel.findOne();
+    console.log("Existing cookie:", existingCookie);
 
-    const makeRequest = async (cookies) => {
+    let cookies = existingCookie ? existingCookie.cookies : await fetchCookies();
+    if (!existingCookie) {
+      await CookieModel.create({ cookies });
+      console.log("New cookies stored in the database");
+    }
+
+    const makeRequest = async () => {
       return await axios.post(
         "http://serviceease.techser.com/live/index.php/calls/callsOnFilter",
         payload,
@@ -64,46 +67,41 @@ export async function POST(request) {
     };
 
     let response;
-
     try {
-      response = await makeRequest(cookies);
+      response = await makeRequest();
+      // console.log("response from server: " + response);
       const getCookies = response.headers["set-cookie"];
-      // Log the cookies
-      // console.log("Cookies:", getCookies);
-      // Check if any of the cookies contains "deleted"
+      console.log("Cookies from response:", getCookies);
+
       const hasDeleted = getCookies && getCookies.some((cookie) => cookie.includes("deleted"));
-      // console.log("Has deleted cookie:", hasDeleted);
       if (hasDeleted) {
-        // If unauthorized, fetch new cookies
-        // console.log("running...");
+        console.log("Deleted cookie found, fetching new cookies");
         cookies = await fetchCookies();
+        const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true });
+        console.log("Cookies updated:", updateResult);
 
-        // Log the result of the update operation
-        const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true }); // Update the stored cookie
-        // console.log("Cookies update result:", updateResult);
-
-        response = await makeRequest(cookies); // Retry the request with new cookies
+        response = await makeRequest(cookies);
       }
     } catch (error) {
-      // console.log("..............error:" + error);
       if (error.response && error.response.status === 401) {
-        // If unauthorized, fetch new cookies
-        // console.log("running...");
+        console.log("Unauthorized, fetching new cookies");
         cookies = await fetchCookies();
+        const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true });
+        console.log("Cookies updated:", updateResult);
 
-        // Log the result of the update operation
-        const updateResult = await CookieModel.updateOne({}, { cookies }, { upsert: true }); // Update the stored cookie
-        console.log("Cookies update result:", updateResult);
-
-        response = await makeRequest(cookies); // Retry the request with new cookies
+        response = await makeRequest(cookies);
       } else {
+        console.error("Error making request:", error);
         throw error;
       }
     }
 
+    // console.log('HTML response from server:', response.data);
     const table = parseHTMLTable(response.data);
-
-    // Process and store the data in MongoDB
+    // console.log('Parsed table data:', table);
+    if (table.length === 0) {
+      throw new Error("No table data found in response");
+    }
     const transformedData = table.map((item) => ({
       blank: item[0],
       callNo: item[1],
@@ -120,19 +118,51 @@ export async function POST(request) {
       cityState: item[12],
       servicePersonRemarks: item[13],
     }));
+    // console.log("Transformed data:", transformedData);
+
+    // Count documents before update
+    const initialCount = await Data.countDocuments();
+    console.log("Initial document count:", initialCount);
+    let newCount = 0;
 
     for (const item of transformedData) {
-      await Data.findOneAndUpdate({ callNo: item.callNo }, item, { upsert: true });
+      const result = await Data.findOneAndUpdate({ callNo: item.callNo }, item, { upsert: true });
+      if (!result) {
+        newCount += 1; // New document added
+      }
     }
 
-    return new Response(JSON.stringify({ message: "Data synced successfully" }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    // Count documents after update
+    const finalCount = await Data.countDocuments();
+    console.log("Final document count:", finalCount);
+    const addedCount = finalCount - initialCount;
+
+    console.log(`Initial document count: ${initialCount}`);
+    console.log(`Final document count: ${finalCount}`);
+    console.log(`Added document count: ${addedCount}`);
+
+    if (addedCount > 0) {
+      return new Response(
+        JSON.stringify({
+          message: `Data synced successfully: ${addedCount} new data entries added`,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } else {
+      return new Response(JSON.stringify({ message: "Only existing data has been updated" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
   } catch (error) {
-    console.error("Error fetching data from the server:", error.message);
+    console.error("Error during POST request:", error.message);
     return NextResponse.json({ error: "Error fetching data from the server" }, { status: 500 });
   }
 }
