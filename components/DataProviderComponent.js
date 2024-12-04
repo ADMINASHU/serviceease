@@ -14,55 +14,109 @@ const DataProviderComponent = ({ children }) => {
         const cookiesResponse = await axios.post("/api/get-cookies");
 
         // Initialize variables for loop
-        const months = [ 11, 12]; // Specify the months you want to fetch data for
-        // let allTransformedData = [];
+        const months = [8, 9, 10, 11, 12]; // Specify the months you want to fetch data for
+        const callStatuses = ["NEW", "IN PROCESS", "COMPLETED"]; // Specify the call statuses
+        const regions = [
+          "AP & TELANGANA",
+          "CHATTISGARH",
+          "GOA",
+          "KALKA",
+          "KARNATAKA",
+          "KERALA",
+          "MADHYA PRADESH",
+          "MUMBAI",
+          "RAJASTHAN",
+          "TAMIL NADU",
+          "West Bengal",
+        ]; // Replace with your actual regions
+        const types = ["breakdown", "installation", "pm"]; // Specify the types
+        let allTransformedData = [];
 
         for (const month of months) {
-          // Step 2: Fetch HTML data using cookies from context
-          const htmlPayload = {
-            month,
-            year: 2024,
-            region: "",
-            branch: "",
-            type: "All",
-            callstatus: "",
-          };
-          const htmlResponse = await axios.post("/api/get-html", {
-            htmlPayload,
-            cookies: cookiesResponse.data.cookies,
-          });
+          for (const callstatus of callStatuses) {
+            for (const region of regions) {
+              for (const type of types) {
+                // Step 2: Fetch HTML data using cookies from context
+                const htmlPayload = {
+                  month,
+                  year: 2024,
+                  region,
+                  branch: "",
+                  type, // Updated to include the new type variable
+                  callstatus,
+                };
 
-          // Step 3: Parse HTML to transform data in chunks
-          let start = 0;
-          const chunkSize = 100;
-          let moreData = true;
+                const htmlResponse = await axios.post("/api/get-html", {
+                  htmlPayload,
+                  cookies: cookiesResponse.data.cookies,
+                });
 
-          while (moreData) {
-            const parsePayload = { start, chunkSize, htmlResponse: htmlResponse.data.htmlResponse };
-            const parseResponse = await axios.post("/api/parse-html", parsePayload);
+                console.log("HTML Response:", htmlResponse.data.htmlResponse);
 
-            setParseResponseData((prevData) => [
-              ...(prevData || []),
-              ...parseResponse.data.transformedData,
-            ]);
+                // Check if HTML contains table data before parsing
+                if (!htmlResponse.data.htmlResponse.includes("<table")) {
+                  console.log(
+                    `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, type: ${type}`
+                  );
+                  continue;
+                }
 
-            // allTransformedData = [
-            //   ...allTransformedData,
-            //   ...parseResponse.data.transformedData,
-            // ];
+                // Step 3: Parse HTML to transform data in chunks
+                let start = 0;
+                const chunkSize = 100;
+                let moreData = true;
 
-            start = parseResponse.data.nextStart;
-            moreData = parseResponse.data.transformedData.length === chunkSize;
+                while (moreData) {
+                  const parsePayload = {
+                    start,
+                    chunkSize,
+                    htmlResponse: htmlResponse.data.htmlResponse,
+                  };
+                  const parseResponse = await axios.post("/api/parse-html", parsePayload);
+
+                  if (
+                    !parseResponse.data.transformedData ||
+                    parseResponse.data.transformedData.length === 0
+                  ) {
+                    console.log(
+                      `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, type: ${type}`
+                    );
+                    break;
+                  }
+
+                  setParseResponseData((prevData) => [
+                    ...(prevData || []),
+                    ...parseResponse.data.transformedData,
+                  ]);
+
+                  allTransformedData = [
+                    ...allTransformedData,
+                    ...parseResponse.data.transformedData,
+                  ];
+
+                  start = parseResponse.data.nextStart;
+                  moreData = parseResponse.data.transformedData.length === chunkSize;
+                }
+              }
+            }
           }
         }
 
         // setTransformedData(allTransformedData);
 
-        // Step 4: Store transformed data in DB
-        const storePayload = {
-          transformedData: parseResponseData,
+        // Step 4: Store transformed data in DB in chunks
+        const storeDataInChunks = async (data) => {
+          const chunkSize = 50; // Adjust chunk size based on your requirements
+          for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            const storePayload = {
+              transformedData: chunk,
+            };
+            await axios.post("/api/store-data", storePayload);
+          }
         };
-        await axios.post("/api/store-data", storePayload);
+
+        await storeDataInChunks(allTransformedData);
       } catch (error) {
         console.error("Error fetching data:", error);
       }

@@ -17,11 +17,9 @@ const fetchCookies = async () => {
 export async function POST(request) {
   try {
     await connectToDatabase();
-    const existingCookie = await CookieModel.findOne();
-    console.log("Existing cookie:", existingCookie);
-
-    const cookies = existingCookie ? existingCookie.cookies : await fetchCookies();
-    if (!existingCookie) {
+   
+    const cookies =  await fetchCookies();
+    if (cookies) {
       await CookieModel.create({ cookies });
       console.log("New cookies stored in the database");
     }
