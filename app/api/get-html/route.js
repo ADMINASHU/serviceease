@@ -1,19 +1,13 @@
-import axios from "axios";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const { htmlPayload, cookies } = await request.json();
-    console.log(cookies);
 
-    if (!cookies) {
-      throw new Error("Cookies not found in context");
-    }
-
-    const response = await axios.post(
+    const response = await fetch(
       "http://serviceease.techser.com/live/index.php/calls/callsOnFilter",
-      htmlPayload,
       {
+        method: 'POST',
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           Accept: "*/*",
@@ -22,21 +16,15 @@ export async function POST(request) {
           "X-Requested-With": "XMLHttpRequest",
           Cookie: cookies,
         },
+        body: new URLSearchParams(htmlPayload).toString(),
       }
     );
 
-    return new Response(
-      JSON.stringify({
-        message: "HTML data fetched and stored in context",
-        htmlResponse: response.data,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const data = await response.text();
+
+    return NextResponse.json({
+      htmlResponse: data,
+    }, { status: 200 });
   } catch (error) {
     console.error("Error during POST request:", error.message);
     return NextResponse.json({ error: "Error fetching HTML data" }, { status: 500 });
