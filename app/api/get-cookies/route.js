@@ -19,10 +19,10 @@ export async function POST(request) {
     await connectToDatabase();
    
     const cookies =  await fetchCookies();
-    if (cookies) {
-      await CookieModel.create({ cookies });
-      console.log("New cookies stored in the database");
-    }
+    // if (cookies) {
+    //   await CookieModel.create({ cookies });
+    //   console.log("New cookies stored in the database");
+    // }
 
     return new Response(
       JSON.stringify({ message: "Cookies fetched and stored in context", cookies }),
