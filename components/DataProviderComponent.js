@@ -4,18 +4,15 @@ import axios from "axios";
 import DataContext from "../context/DataContext";
 
 const DataProviderComponent = ({ children }) => {
-  const [parseResponseData, setParseResponseData] = useState([]);
   const { setCookies, setHtmlResponse, setTransformedData } = useContext(DataContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Step 1: Get cookies and store in context and DB
         const cookiesResponse = await axios.post("/api/get-cookies");
 
-        // Initialize variables for loop
-        const months = [8, 9, 10, 11, 12]; // Specify the months you want to fetch data for
-        const callStatuses = ["NEW", "IN PROCESS", "COMPLETED"]; // Specify the call statuses
+        const months = [8, 9];
+        const callStatuses = ["NEW", "IN PROCESS", "COMPLETED"];
         const regions = [
           "AP & TELANGANA",
           "CHATTISGARH",
@@ -28,90 +25,100 @@ const DataProviderComponent = ({ children }) => {
           "RAJASTHAN",
           "TAMIL NADU",
           "West Bengal",
-        ]; // Replace with your actual regions
-        const types = ["breakdown", "installation", "pm"]; // Specify the types
+        ];
+        const types = ["breakdown", "installation", "pm"];
         let allTransformedData = [];
+        let allBranchData = [];
+
+        // Fetch all branches data
+        for (const region of regions) {
+          const regionPayload = { region };
+          const branchResponse = await axios.post("/api/branch", {
+            regionPayload,
+            cookies: cookiesResponse.data.cookies,
+          });
+          allBranchData = [
+            ...allBranchData,
+            ...branchResponse.data.branchResponse,
+          ];
+        }
+
+        // Function to get branches by region
+        const getBranchesByRegion = (region) => {
+          return allBranchData
+            .filter(branchData => branchData.REGION === region)
+            .map(branchData => branchData.BRANCH);
+        };
 
         for (const month of months) {
           for (const callstatus of callStatuses) {
             for (const region of regions) {
               for (const type of types) {
-                // Step 2: Fetch HTML data using cookies from context
-                const htmlPayload = {
-                  month,
-                  year: 2024,
-                  region,
-                  branch: "",
-                  type, // Updated to include the new type variable
-                  callstatus,
-                };
+                const branches = getBranchesByRegion(region);
 
-                const htmlResponse = await axios.post("/api/get-html", {
-                  htmlPayload,
-                  cookies: cookiesResponse.data.cookies,
-                });
-
-                console.log("HTML Response:", htmlResponse.data.htmlResponse);
-
-                // Check if HTML contains table data before parsing
-                if (!htmlResponse.data.htmlResponse.includes("<table")) {
-                  console.log(
-                    `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, type: ${type}`
-                  );
-                  continue;
-                }
-
-                // Step 3: Parse HTML to transform data in chunks
-                let start = 0;
-                const chunkSize = 100;
-                let moreData = true;
-
-                while (moreData) {
-                  const parsePayload = {
-                    start,
-                    chunkSize,
-                    htmlResponse: htmlResponse.data.htmlResponse,
+                for (const branch of branches) {
+                  const htmlPayload = {
+                    month,
+                    year: 2024,
+                    region,
+                    branch,
+                    type,
+                    callstatus,
                   };
-                  const parseResponse = await axios.post("/api/parse-html", parsePayload);
 
-                  if (
-                    !parseResponse.data.transformedData ||
-                    parseResponse.data.transformedData.length === 0
-                  ) {
+                  const htmlResponse = await axios.post("/api/get-html", {
+                    htmlPayload,
+                    cookies: cookiesResponse.data.cookies,
+                  });
+
+                  if (!htmlResponse.data.htmlResponse.includes("<table")) {
                     console.log(
-                      `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, type: ${type}`
+                      `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
                     );
-                    break;
+                    continue;
                   }
 
-                  setParseResponseData((prevData) => [
-                    ...(prevData || []),
-                    ...parseResponse.data.transformedData,
-                  ]);
+                  let start = 0;
+                  const chunkSize = 1000;
+                  let moreData = true;
 
-                  allTransformedData = [
-                    ...allTransformedData,
-                    ...parseResponse.data.transformedData,
-                  ];
+                  while (moreData) {
+                    const parsePayload = {
+                      start,
+                      chunkSize,
+                      htmlResponse: htmlResponse.data.htmlResponse,
+                    };
+                    const parseResponse = await axios.post("/api/parse-html", parsePayload);
 
-                  start = parseResponse.data.nextStart;
-                  moreData = parseResponse.data.transformedData.length === chunkSize;
+                    if (
+                      !parseResponse.data.transformedData ||
+                      parseResponse.data.transformedData.length === 0
+                    ) {
+                      console.log(
+                        `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
+                      );
+                      break;
+                    }
+
+                    allTransformedData = [
+                      ...allTransformedData,
+                      ...parseResponse.data.transformedData,
+                    ];
+
+                    start = parseResponse.data.nextStart;
+                    moreData = parseResponse.data.transformedData.length === chunkSize;
+                  }
                 }
               }
             }
           }
         }
 
-        // setTransformedData(allTransformedData);
-
-        // Step 4: Store transformed data in DB in chunks
         const storeDataInChunks = async (data) => {
-          const chunkSize = 50; // Adjust chunk size based on your requirements
+          const chunkSize = 50;
           for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
-            const storePayload = {
-              transformedData: chunk,
-            };
+            const storePayload = { transformedData: chunk };
             await axios.post("/api/store-data", storePayload);
           }
         };
