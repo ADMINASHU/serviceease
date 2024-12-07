@@ -1,0 +1,50 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.form-container h1 {
+  margin-bottom: 20px;
+}
+
+.form-container label {
+  margin-bottom: 10px;
+}
+
+.form-container input {
+  margin-bottom: 15px;
+  padding: 5px;
+  width: 200px;
+}
+
+.month-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.month-buttons button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.month-buttons button.selected {
+  background-color: #b30000;
+}
+
+.form-container button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.form-container button:hover {
+  background-color: #0056b3;
+}

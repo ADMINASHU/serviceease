@@ -4,14 +4,15 @@ import axios from "axios";
 import DataContext from "../context/DataContext";
 
 const DataProviderComponent = ({ children }) => {
-  const { setCookies, setHtmlResponse, setTransformedData } = useContext(DataContext);
+  const {months, year} = useContext(DataContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const cookiesResponse = await axios.post("/api/get-cookies");
-
-        const months = [8, 9];
+        const monthResponse = await axios.get("/api/month");
+        const months = monthResponse.data.month.months || months;
+        const year = monthResponse.data.month.year || year;
         const callStatuses = ["NEW", "IN PROCESS", "COMPLETED"];
         const regions = [
           "AP & TELANGANA",
@@ -37,17 +38,14 @@ const DataProviderComponent = ({ children }) => {
             regionPayload,
             cookies: cookiesResponse.data.cookies,
           });
-          allBranchData = [
-            ...allBranchData,
-            ...branchResponse.data.branchResponse,
-          ];
+          allBranchData = [...allBranchData, ...branchResponse.data.branchResponse];
         }
 
         // Function to get branches by region
         const getBranchesByRegion = (region) => {
           return allBranchData
-            .filter(branchData => branchData.REGION === region)
-            .map(branchData => branchData.BRANCH);
+            .filter((branchData) => branchData.REGION === region)
+            .map((branchData) => branchData.BRANCH);
         };
 
         for (const month of months) {
@@ -59,7 +57,7 @@ const DataProviderComponent = ({ children }) => {
                 for (const branch of branches) {
                   const htmlPayload = {
                     month,
-                    year: 2024,
+                    year,
                     region,
                     branch,
                     type,
@@ -79,7 +77,7 @@ const DataProviderComponent = ({ children }) => {
                   }
 
                   let start = 0;
-                  const chunkSize = 1000;
+                  const chunkSize = 500;
                   let moreData = true;
 
                   while (moreData) {
@@ -130,7 +128,7 @@ const DataProviderComponent = ({ children }) => {
     };
 
     fetchData();
-  }, [setCookies, setHtmlResponse, setTransformedData]);
+  }, []);
 
   return <>{children}</>;
 };

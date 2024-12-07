@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // In-memory store for context
 let contextStore = {};
 
-const parseHTMLTable = (html, start = 0, chunkSize = 1000) => {
+const parseHTMLTable = (html, start = 0, chunkSize = 500) => {
   const data = [];
   const tableRegex = /<table[^>]*>(.*?)<\/table>/s;
   const rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;

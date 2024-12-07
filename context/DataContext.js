@@ -1,17 +1,36 @@
-// context/DataContext.js
-"use client"
-import React, { createContext, useState } from "react";
+"use client";
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
-  const [cookies, setCookies] = useState(null);
-  const [htmlResponse, setHtmlResponse] = useState(null);
-  const [transformedData, setTransformedData] = useState(null);
+  const [months, setMonths] = useState([]);
+  const [year, setYear] = useState(null);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const response = await axios.get("/api/month");
+        setMonths(response.data.months || []);
+        setYear(response.data.year || "");
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   return (
     <DataContext.Provider
-      value={{ cookies, setCookies, htmlResponse, setHtmlResponse, transformedData, setTransformedData }}
+      value={{
+        months,
+        setMonths,
+        year,
+        setYear,
+      }}
     >
       {children}
     </DataContext.Provider>
