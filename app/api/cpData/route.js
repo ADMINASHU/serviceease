@@ -23,7 +23,7 @@ export async function POST(request) {
         },
       }
     );
-    const CP = response.data[0];
+    const CP = response.data[0] || {};
     const CPData = {
       id: CP.ID,
       custId: CP.CUSTID,
@@ -49,7 +49,9 @@ export async function POST(request) {
       modelCode: CP.MODELCODE,
       capacity: CP.CAPACITY,
       capacityUnit: CP.CAPACITYUNIT,
+      callIds:[],
     };
+
 
     return NextResponse.json(
       {
