@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+const cheerio = require("cheerio");
 
 export async function POST(request) {
   try {
@@ -7,7 +8,7 @@ export async function POST(request) {
     const response = await fetch(
       "http://serviceease.techser.com/live/index.php/calls/callsOnFilter",
       {
-        method: 'POST',
+        method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           Accept: "*/*",
@@ -19,12 +20,18 @@ export async function POST(request) {
         body: new URLSearchParams(htmlPayload).toString(),
       }
     );
+    const htmlText = await response.text();
 
-    const data = await response.text();
-
-    return NextResponse.json({
-      htmlResponse: data,
-    }, { status: 200 });
+    const $ = cheerio.load(htmlText);
+    const firstTable = $("table").first().html();
+    if (firstTable) {
+      return NextResponse.json(
+        {
+          htmlResponse: `<table>${firstTable}</table>`,
+        },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error("Error during POST request:", error.message);
     return NextResponse.json({ error: "Error fetching HTML data" }, { status: 500 });

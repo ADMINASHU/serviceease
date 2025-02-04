@@ -1,55 +1,94 @@
 import { NextResponse } from "next/server";
+const cheerio = require("cheerio");
 
 // In-memory store for context
 let contextStore = {};
 
-const parseHTMLTable = (html, start = 0, chunkSize = 500) => {
+const extractTableData = (
+  htmlString,
+  start = 0,
+  chunkSize = 500,
+  month,
+  year,
+  region,
+  branch,
+  type,
+  callstatus
+) => {
+  const $ = cheerio.load(htmlString);
+  const decodeHtmlEntity = (str) => $("<textarea>").html(str).text();
+  const rows = $("tbody tr").slice(start, start + chunkSize);
   const data = [];
-  const tableRegex = /<table[^>]*>(.*?)<\/table>/s;
-  const rowRegex = /<tr[^>]*>(.*?)<\/tr>/gs;
-  const cellRegex = /<t[dh][^>]*>(.*?)<\/t[dh]>/gs;
-  const tableMatch = tableRegex.exec(html);
-  if (tableMatch) {
-    const rows = tableMatch[1].match(rowRegex).slice(start, start + chunkSize);
-    rows.forEach((row) => {
-      const cells = row.match(cellRegex);
-      const rowData = cells.map((cell) => cell.replace(/<.*?>/g, "").trim());
-      data.push(rowData);
+
+  rows.each((i, row) => {
+    const cells = $(row).find("td");
+    data.push({
+      callNo: cells[1] ? $(cells[1]).find("a").text().trim() || "" : "",
+      natureOfComplaint: type || "",
+      callStatus: callstatus || "",
+      // faultReport: cells[2] ? ($(cells[2]).text().trim() || '') : '',
+      callDate: cells[3] ? $(cells[3]).text().trim() || "" : "",
+      callStartDate: cells[4] ? $(cells[4]).html().split("<br>")[0].trim() || "" : "",
+      callEndDate: cells[4] ? $(cells[4]).html().split("<br>")[1].trim() || "" : "",
+      engineerName: cells[5] ? $(cells[5]).find("a").text().trim() || "" : "",
+      // engineerContact: cells[5] ? ($(cells[5])?.html()?.split("<br>")[1]?.trim()?.split(/[\s\n\t]+/)[0] || '') : '',
+      // serialNo: cells[6] ? ($(cells[6]).html().split("<br>")[0].trim() || '') : '',
+      // productCategory: cells[6] ? ($(cells[6]).html().split("<br>")[1].trim() || '') : '',
+      // productSeries: cells[6] ? ($(cells[6]).html().split("<br>")[2].trim() || '') : '',
+      // productName: cells[6] ? ($(cells[6]).html().split("<br>")[3].trim() || '') : '',
+      // productModel: cells[6] ? ($(cells[6]).html().split("<br>")[4].trim() || '') : '',
+      // unitStatus: cells[7] ? ($(cells[7]).html().split("<br>")[0].replace(/<[^>]+>/g, '').trim() || '') : '',
+      // unitStartDate: cells[7] ? ($(cells[7]).html().split("<br>")[1].trim() || '') : '',
+      // unitEndDate: cells[7] ? ($(cells[7]).html().split("<br>")[2].replace(/<[^>]+>/g, '').trim() || '') : '',
+      // customerName: cells[8] ? ($(cells[8]).html().split("<br>")[0].trim() || '') : '',
+      // customerAddress: cells[8] ? ($(cells[8]).html().split("<br>")[1].trim() || '') : '',
+      // customerPhone: cells[9] ? ($(cells[9]).html().split("<br>")[0].trim() || '') : '',
+      // customerEmail: cells[9] ? ($(cells[9]).html().split("<br>")[1].trim() || '') : '',
+      // contactPerson: cells[10] ? ($(cells[10]).html().split("<br>")[0].trim() || '') : '',
+      // contactPersonPhone: cells[10] ? ($(cells[10]).html().split("<br>")[1].trim() || '') : '',
+      // contactPersonDesignation: cells[10] ? ($(cells[10]).html().split("<br>")[2].trim() || '') : '',
+      region: region,
+      branch: branch,
+      // city: cells[12] ? ($(cells[12]).html().split("<br>")[0].trim() || '') : '',
+      // state: cells[12] ? ($(cells[12]).html().split("<br>")[1].trim() || '') : '',
+      // servicePersonRemarks: cells[13] ? ($(cells[13]).text().trim() || '') : ''
+      month: `${month}`,
+      year: `${year}`,
     });
-  }
+  });
+
   return data;
 };
 
 export async function POST(request) {
   try {
-    const { start, chunkSize, htmlResponse } = await request.json();
- 
+    const {
+      start = 0,
+      chunkSize = 500,
+      htmlResponse,
+      month,
+      year,
+      region,
+      branch,
+      type,
+      callstatus,
+    } = await request.json();
 
     if (!htmlResponse) {
       throw new Error("HTML response not found in context");
     }
 
-    const tableChunk = parseHTMLTable(htmlResponse, start, chunkSize);
-    if (tableChunk.length === 0) {
-      throw new Error("No table data found in HTML response");
-    }
-
-    const transformedData = tableChunk.map((item) => ({
-      blank: item[0],
-      callNo: item[1],
-      faultReport: item[2],
-      callDate: item[3],
-      callStartEndDate: item[4],
-      engineerName: item[5],
-      serialNo: item[6],
-      unitStatus: item[7],
-      customerName: item[8],
-      phoneEmail: item[9],
-      contactPerson: item[10],
-      regionBranch: item[11],
-      cityState: item[12],
-      servicePersonRemarks: item[13],
-    }));
+    const transformedData = extractTableData(
+      htmlResponse,
+      start,
+      chunkSize,
+      month,
+      year,
+      region,
+      branch,
+      type,
+      callstatus
+    );
 
     // Store transformed data in context
     contextStore.transformedData = [...(contextStore.transformedData || []), ...transformedData];

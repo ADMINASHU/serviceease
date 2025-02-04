@@ -69,12 +69,12 @@ const DataProviderComponent = ({ children }) => {
                     cookies: cookiesResponse.data.cookies,
                   });
 
-                  if (!htmlResponse.data.htmlResponse.includes("<table")) {
-                    console.log(
-                      `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
-                    );
-                    continue;
-                  }
+                  // if (!htmlResponse.data.htmlResponse.includes("<table>")) {
+                  //   console.log(
+                  //     `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
+                  //   );
+                  //   continue;
+                  // }
 
                   let start = 0;
                   const chunkSize = 500;
@@ -82,6 +82,12 @@ const DataProviderComponent = ({ children }) => {
 
                   while (moreData) {
                     const parsePayload = {
+                      month,
+                      year,
+                      region,
+                      branch,
+                      type,
+                      callstatus,
                       start,
                       chunkSize,
                       htmlResponse: htmlResponse.data.htmlResponse,
@@ -92,9 +98,9 @@ const DataProviderComponent = ({ children }) => {
                       !parseResponse.data.transformedData ||
                       parseResponse.data.transformedData.length === 0
                     ) {
-                      console.log(
-                        `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
-                      );
+                      // console.log(
+                      //   `No table data found for month: ${month}, callstatus: ${callstatus}, region: ${region}, branch: ${branch}, type: ${type}`
+                      // );
                       break;
                     }
 
@@ -113,7 +119,7 @@ const DataProviderComponent = ({ children }) => {
         }
 
         const storeDataInChunks = async (data) => {
-          const chunkSize = 50;
+          const chunkSize = 500;
           for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
             const storePayload = { transformedData: chunk };
@@ -128,7 +134,7 @@ const DataProviderComponent = ({ children }) => {
     };
 
     fetchData();
-  }, []);
+  }, [months, year]);
 
   return <>{children}</>;
 };

@@ -1,5 +1,5 @@
 import connectToDatabase from "../../../lib/mongodb";
-import Data from "@/app/models/Data";
+import NewData from "@/app/models/Data";
 import { NextResponse } from "next/server";
 
 
@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     // Function to store data in chunks
-    const storeDataInChunks = async (data, chunkSize = 50) => {
+    const storeDataInChunks = async (data, chunkSize = 500) => {
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
         const bulkOps = chunk.map(item => ({
@@ -24,7 +24,7 @@ export async function POST(request) {
             upsert: true
           }
         }));
-        await Data.bulkWrite(bulkOps);
+        await NewData.bulkWrite(bulkOps);
       }
     };
 
