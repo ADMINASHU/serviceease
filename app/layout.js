@@ -5,6 +5,7 @@ import React from "react";
 import { DataProvider } from "../context/DataContext";
 import DataProviderComponent from "../components/DataProviderComponent";
 import { UserProviderComponent } from "../components/UserProviderComponent"; // Ensure this path is correct
+import { CPProviderComponent } from "@/components/CPProviderComponent";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,8 +25,8 @@ export default function RootLayout({ children }) {
         <DataProvider>
           <UserProviderComponent>
             <DataProviderComponent>
-              {children}
-              </DataProviderComponent>
+              <CPProviderComponent>{children}</CPProviderComponent>
+            </DataProviderComponent>
           </UserProviderComponent>
         </DataProvider>
       </body>

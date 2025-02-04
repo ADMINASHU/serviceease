@@ -133,7 +133,7 @@ const DataProviderComponent = ({ children }) => {
       }
     };
 
-    fetchData();
+    // fetchData();
   }, [months, year]);
 
   return <>{children}</>;

@@ -3,11 +3,13 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import DataContext from "../context/DataContext";
 import { useUserContext } from "../components/UserProviderComponent";
+import { useCPContext } from "@/components/CPProviderComponent";
 import styles from "./page.module.css"; // Import the CSS file
 
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
+  const { fetchCPData } = useCPContext();
 
   const [localMonths, setLocalMonths] = useState([]);
   const [localYear, setLocalYear] = useState("");
@@ -80,6 +82,7 @@ const Home = () => {
         <button type="submit">Save</button>
       </form>
       <button onClick={fetchUserData}>Fetch Users Data</button>
+      <button onClick={fetchCPData}>Fetch CP Data</button>
     </div>
   );
 };
