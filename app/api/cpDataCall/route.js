@@ -1,6 +1,25 @@
 import { NextResponse } from "next/server";
 const cheerio = require("cheerio");
-import axios from "axios";
+// import axios from "axios";
+// const extractTableData = (htmlString) => {
+//   const $ = cheerio.load(htmlString);
+//   const rows = $("tbody tr");
+//   const data = [];
+
+//   rows.each((i, row) => {
+//     const cells = $(row).find("td");
+//     data.push({
+//         callNo: cells[0] ? $(cells[0]).text().trim().split('\n')[0].trim() : "",
+//         natureOfComplaint: //code here
+//     });
+//   });
+
+//   return data;
+// };
+
+
+
+
 const extractTableData = (htmlString) => {
   const $ = cheerio.load(htmlString);
   const rows = $("tbody tr");
@@ -8,14 +27,24 @@ const extractTableData = (htmlString) => {
 
   rows.each((i, row) => {
     const cells = $(row).find("td");
-    data.push({
+    if (cells.length > 0) {
+      const cellContent = $(cells[0]).html();
+      const match = cellContent.match(/<br>(.*?)<br>/);
+      const natureOfComplaint = match ? match[1].trim() : "";
+
+      data.push({
         callNo: cells[0] ? $(cells[0]).text().trim().split('\n')[0].trim() : "",
-        natureOfComplaint: cells[0] ? $(cells[0]).text().trim().split('\n')[1].trim() : "",
-    });
+        natureOfComplaint: natureOfComplaint
+      });
+    }
   });
 
   return data;
 };
+
+
+
+
 export async function POST(request) {
   try {
     const { payload, cookies } = await request.json();
@@ -49,7 +78,7 @@ export async function POST(request) {
         throw new Error("HTML response not found in context");
       }
       const transformedData = extractTableData(htmlResponse);
-      // console.log(transformedData);
+      console.log(transformedData);
       return NextResponse.json(
         {
             transformedData,

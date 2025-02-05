@@ -29,7 +29,7 @@ export const CPProviderComponent = ({ children }) => {
       let ArrCPData = {};
       cpResponses.forEach((responseArray) => {
         const [cpDataResponse, cpDataCallResponse] = responseArray;
-        const callIds = cpDataCallResponse.data.transformedData.map(item => item.callNo); // Extract callNo as an array of strings
+        const callIds = cpDataCallResponse.data.transformedData; // Extract callNo as an array of strings
         ArrCPData = { ...cpDataResponse.data.CPData, callIds };
         allCPData = [...allCPData, ArrCPData].filter((item) => item.id !== undefined);
       });
