@@ -12,7 +12,7 @@ export const CPProviderComponent = ({ children }) => {
       const cookiesResponse = await axios.post("/api/get-cookies");
       const promises = [];
 
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10; i++) {
         const payload = { id: i };
         const promise = axios.post("/api/cpData", {
           payload,
@@ -24,7 +24,7 @@ export const CPProviderComponent = ({ children }) => {
         });
 
         promises.push(Promise.all([promise, promise2]));
-        await delay(500); // Add a delay of 1 second between each iteration
+        await delay(300); // Add a delay of 1 second between each iteration
       }
 
       const cpResponses = await Promise.all(promises);
