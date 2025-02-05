@@ -27,9 +27,8 @@ const CpSchema = new mongoose.Schema({
   capacityUnit: { type: String },
   callIds: [
     {
-      id: {
-        type: String,
-      },
+      callNo: { type: String },
+      natureOfComplaint: { type: String },
     },
   ],
 });

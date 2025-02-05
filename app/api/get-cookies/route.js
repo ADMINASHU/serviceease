@@ -6,7 +6,7 @@ import connectToDatabase from "../../../lib/mongodb";
 const fetchCookies = async () => {
   try {
     const response = await axios.get(`${process.env.BASE_URL}/api/cookies`);
-    console.log("Fetched cookies:", response.data);
+    // console.log("Fetched cookies:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching cookies:", error);

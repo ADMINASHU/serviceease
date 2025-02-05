@@ -1,24 +1,5 @@
 import { NextResponse } from "next/server";
 const cheerio = require("cheerio");
-// import axios from "axios";
-// const extractTableData = (htmlString) => {
-//   const $ = cheerio.load(htmlString);
-//   const rows = $("tbody tr");
-//   const data = [];
-
-//   rows.each((i, row) => {
-//     const cells = $(row).find("td");
-//     data.push({
-//         callNo: cells[0] ? $(cells[0]).text().trim().split('\n')[0].trim() : "",
-//         natureOfComplaint: //code here
-//     });
-//   });
-
-//   return data;
-// };
-
-
-
 
 const extractTableData = (htmlString) => {
   const $ = cheerio.load(htmlString);
@@ -78,7 +59,7 @@ export async function POST(request) {
         throw new Error("HTML response not found in context");
       }
       const transformedData = extractTableData(htmlResponse);
-      console.log(transformedData);
+      // console.log(transformedData);
       return NextResponse.json(
         {
             transformedData,
