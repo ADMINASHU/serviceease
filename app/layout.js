@@ -1,11 +1,10 @@
 import localFont from "next/font/local";
 import "./globals.css";
-// app/layout.js
 import React from "react";
 import { DataProvider } from "../context/DataContext";
-import DataProviderComponent from "../components/DataProviderComponent";
-import { UserProviderComponent } from "../components/UserProviderComponent"; // Ensure this path is correct
+import { UserProviderComponent } from "../components/UserProviderComponent";
 import { CPProviderComponent } from "@/components/CPProviderComponent";
+import { DataProviderComponent } from "@/components/DataProviderComponent";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

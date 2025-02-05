@@ -1,15 +1,17 @@
 "use client";
 import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
+import styles from "./page.module.css";
 import DataContext from "../context/DataContext";
 import { useUserContext } from "../components/UserProviderComponent";
 import { useCPContext } from "@/components/CPProviderComponent";
-import styles from "./page.module.css"; // Import the CSS file
+import { useNewDataContext } from "@/components/DataProviderComponent";
 
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
   const { fetchCPData } = useCPContext();
+  const { fetchData } = useNewDataContext();
 
   const [localMonths, setLocalMonths] = useState([]);
   const [localYear, setLocalYear] = useState("");
@@ -81,6 +83,7 @@ const Home = () => {
         <br />
         <button type="submit">Save</button>
       </form>
+      <button onClick={fetchData}>Fetch Data</button>
       <button onClick={fetchUserData}>Fetch Users Data</button>
       <button onClick={fetchCPData}>Fetch CP Data</button>
     </div>
