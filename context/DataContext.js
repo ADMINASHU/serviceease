@@ -14,7 +14,7 @@ export const DataProvider = ({ children }) => {
         const response = await axios.get("/api/month");
         setMonths(response.data.months || []);
         setYear(response.data.year || "");
-        console.log(response.data);
+        // console.log(response.data);
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }

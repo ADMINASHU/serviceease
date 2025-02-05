@@ -25,7 +25,7 @@ const CpSchema = new mongoose.Schema({
   modelCode: { type: String},
   capacity: { type: String},
   capacityUnit:  { type: String},
-  callIds: [{ type: String}],
+  callIds: [{ type: String }],
 });
 
 export default mongoose.models.CPData || mongoose.model("CPData", CpSchema);

@@ -26,9 +26,9 @@ export async function POST(request) {
         await CPData.bulkWrite(bulkOps);
       }
     };
-
+    // console.log(allCPData.filter((item) => item.custId !== ""));
     // Store transformed data in chunks
-    await storeDataInChunks(allCPData);
+    await storeDataInChunks(allCPData.filter((item) => item.custId !== ""));
 
     return NextResponse.json(
       {

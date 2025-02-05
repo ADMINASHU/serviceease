@@ -10,6 +10,7 @@ const extractTableData = (htmlString) => {
     const cells = $(row).find("td");
     data.push({
         callNo: cells[0] ? $(cells[0]).text().trim().split('\n')[0].trim() : "",
+        natureOfComplaint: cells[0] ? $(cells[0]).text().trim().split('\n')[1].trim() : "",
     });
   });
 
@@ -48,7 +49,7 @@ export async function POST(request) {
         throw new Error("HTML response not found in context");
       }
       const transformedData = extractTableData(htmlResponse);
-      console.log(transformedData);
+      // console.log(transformedData);
       return NextResponse.json(
         {
             transformedData,
