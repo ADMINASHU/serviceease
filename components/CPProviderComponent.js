@@ -12,7 +12,7 @@ export const CPProviderComponent = ({ children }) => {
       const cookiesResponse = await axios.post("/api/get-cookies");
       const promises = [];
 
-      for (let i = 8000; i < 8400; i++) {
+      for (let i = 28000; i < 30000; i++) {
         const payload = { id: i };
         const promise = axios.post("/api/cpData", {
           payload,
