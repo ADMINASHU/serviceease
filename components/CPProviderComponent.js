@@ -113,7 +113,7 @@ export const CPProviderComponent = ({ children }) => {
         ArrCPData = { ...cpDataResponse?.data?.CPData, callIds };
         allCPData = [...allCPData, ArrCPData].filter((item) => item.id !== undefined);
       });
-      console.log(allCPData);
+      // console.log(allCPData);
       const storeDataInChunks = async (data) => {
         const chunkSize = 500;
         for (let i = 0; i < data.length; i += chunkSize) {

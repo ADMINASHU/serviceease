@@ -26,7 +26,7 @@ export async function POST(request) {
     const CP = response.data[0] || {};
     const CPData = {
       id: CP.ID,
-      custId: CP.CUSTID || CP.DUPCUSTID,
+      custId: (CP.CUSTID === "" || CP.CUSTID === null) ? CP.DUPCUSTID : CP.CUSTID,
       prodId: CP.PRODID,
       serialNo: CP.SERIALNO,
       pincode: CP.PINCODE,
@@ -49,9 +49,8 @@ export async function POST(request) {
       modelCode: CP.MODELCODE,
       capacity: CP.CAPACITY,
       capacityUnit: CP.CAPACITYUNIT,
-      callIds:[],
+      callIds: [],
     };
-
 
     return NextResponse.json(
       {
