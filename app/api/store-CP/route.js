@@ -28,7 +28,7 @@ export async function POST(request) {
     };
     // console.log(allCPData.filter((item) => item.custId !== ""));
     // Store transformed data in chunks
-    await storeDataInChunks(allCPData.filter((item) => item.custId !== ""));
+    await storeDataInChunks(allCPData.filter((item) => item.custId !== "" ||  item.custId !== null ));
 
     return NextResponse.json(
       {
