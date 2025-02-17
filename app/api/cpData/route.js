@@ -26,7 +26,7 @@ export async function POST(request) {
     const CP = response.data[0] || {};
     const CPData = {
       id: CP.ID,
-      custId: CP.CUSTID,
+      custId: CP.CUSTID || CP.DUPCUSTID,
       prodId: CP.PRODID,
       serialNo: CP.SERIALNO,
       pincode: CP.PINCODE,
