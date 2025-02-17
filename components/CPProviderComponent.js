@@ -101,7 +101,7 @@ export const CPProviderComponent = ({ children }) => {
           });
 
         promises.push(Promise.all([promise, promise2]));
-        await delay(300); // Add a delay of 1 second between each iteration
+        await delay(280); // Add a delay of 1 second between each iteration
       }
 
       const cpResponses = await Promise.all(promises);
