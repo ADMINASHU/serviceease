@@ -1,4 +1,37 @@
-function sortAndMergeColumnsToIndentTable() {
+// Add this helper function at the top of the file
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  if (dateStr instanceof Date) return dateStr;
+  if (typeof dateStr !== 'string') return null;
+
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return null;
+
+  const [day, month, year] = parts.map(num => parseInt(num, 10));
+  return new Date(year, month - 1, day);
+}
+
+// Update the parseTime function to handle time properly
+function parseTime(timeStr) {
+  if (!timeStr) return [0, 0];
+
+  // If timeStr is a Date object (which Google Sheets sends for time values)
+  if (timeStr instanceof Date) {
+    return [timeStr.getHours(), timeStr.getMinutes()];
+  }
+
+  // Handle string time format
+  if (typeof timeStr === 'string') {
+    const parts = timeStr.includes(':') ? timeStr.split(':') : timeStr.split('.');
+    if (parts.length === 2) {
+      return [parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0];
+    }
+  }
+
+  return [0, 0];
+}
+
+function fetch() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet();
   const entrySheet = sheet.getSheetByName("Complaints"); // Sheet with the entry table
   const indentSheet = sheet.getSheetByName("Complaint_Records"); // Sheet where results should be output
@@ -27,78 +60,122 @@ function sortAndMergeColumnsToIndentTable() {
   const sumExpenseIndex = 22; // Column W (index 22)
   const expenseColumnIndex = 34; // Column AI (index 34)
 
-  // Trim and normalize data for comparison
-  data.forEach((row) => {
+  // Define date column indices to skip during trimming
+  const dateColumns = [startDateIndex, statusDateIndex, visitDateIndex]; // Add any other date columns here
+
+  // Trim and normalize data for comparison, excluding date columns
+  data.forEach(row => {
     for (let i = 0; i < 23; i++) {
-      if (typeof row[i] === "string") {
-        row[i] = row[i].trim(); // Trim text values only
+      if (!dateColumns.includes(i) && typeof row[i] === "string") {
+        row[i] = row[i].trim(); // Trim text values only, skip date columns
       }
     }
   });
 
-  // Sort data based on the first 23 columns
-  data.sort((row1, row2) => row1.slice(0, 23).join().localeCompare(row2.slice(0, 23).join()));
+  // Sort data based only on COMPLAINT NUMBER (column 3, index 2)
+  data.sort((row1, row2) => {
+    const a = row1[complaintNumberIndex] || '';
+    const b = row2[complaintNumberIndex] || '';
+    return String(a).localeCompare(String(b));
+  });
 
   // Combine headers and sorted data
   const sortedValues = headers.concat(data);
 
   // Clear the Indent sheet and write sorted data, including headers
   indentSheet.clear();
+
+  // Format specific header cells
+  const specificCells = indentSheet.getRangeList(['A1', 'D1']);
+  specificCells.setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setBackground('#003030')
+    .setFontColor('white');
+  const specificCells2 = indentSheet.getRangeList(['B1', 'E1']);
+  specificCells2.setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setBackground('white')
+    .setFontColor('#003030');
+
+  // Write the data
   indentSheet.getRange(1, 1, sortedValues.length, sortedValues[0].length).setValues(sortedValues);
 
-  // Apply vertical merging to the first 23 columns
+  // Merge all 23 columns for rows with the same COMPLAINT NUMBER and fill with the first row's data
   let mergeStartRow = 3; // Start merging from row 3 (excluding headers)
   for (let i = 4; i <= sortedValues.length + 1; i++) {
-    const currentRow =
-      i <= sortedValues.length
-        ? sortedValues[i - 1].slice(0, 23).join() // Slice and join the first 23 columns for comparison
-        : null; // Null at the end to finalize the last group
-    const previousRow = sortedValues[i - 2].slice(0, 23).join();
+    const currentComplaint = i <= sortedValues.length ? sortedValues[i - 1][complaintNumberIndex] : null;
+    const previousComplaint = sortedValues[i - 2][complaintNumberIndex];
 
-    // If the group ends OR it's the last row
-    if (currentRow !== previousRow || i > sortedValues.length) {
+    if (currentComplaint !== previousComplaint || i > sortedValues.length) {
       if (mergeStartRow <= i - 1) {
-        indentSheet.getRange(mergeStartRow, 1, i - mergeStartRow, 23).mergeVertically(); // Merge vertically
+        // Fill all rows in the group with the first row's data
+        const fillData = sortedValues[mergeStartRow - 1].slice(0, 23);
+        for (let j = mergeStartRow; j < i; j++) {
+          for (let k = 0; k < 23; k++) {
+            sortedValues[j - 1][k] = fillData[k];
+          }
+        }
+        // Merge vertically for all 23 columns
+        indentSheet.getRange(mergeStartRow, 1, i - mergeStartRow, 23).mergeVertically();
       }
-      mergeStartRow = i; // Update merge start row
+      mergeStartRow = i;
     }
   }
 
+  // Write back the updated data after filling
+  indentSheet.getRange(3, 1, data.length, data[0].length).setValues(sortedValues.slice(2));
+
   // Update CURRENT COMPLAINT STATUS, STATUS DATE, and STATUS SUBMITTED BY using the latest VISIT DATE and TIME
   const latestComplaintStatusMap = new Map();
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
-    const visitDate = row[visitDateIndex];
-    const visitTime = row[visitTimeIndex] || "00:00"; // Default to '00:00' if time is missing
-    // Merge date and time for comparison (format: "YYYY-MM-DD HH:mm")
-    const combinedDateTime = visitDate + " " + visitTime;
+    const visitDateStr = row[visitDateIndex];
+    const visitTimeStr = row[visitTimeIndex];
+
+    // Create date object and set time
+    const visitDate = parseDate(visitDateStr);
+    let combinedDateTime = null;
+    if (visitDate) {
+      combinedDateTime = new Date(visitDate);
+      const [hours, minutes] = parseTime(visitTimeStr);
+      combinedDateTime.setHours(hours, minutes, 0);
+    }
+
     const callStatus = row[callStatusIndex];
     const submittedBy = row[submittedByIndex];
 
     if (latestComplaintStatusMap.has(complaintNumber)) {
       const existingEntry = latestComplaintStatusMap.get(complaintNumber);
-      const existingDateTime = existingEntry.visitDate + " " + existingEntry.visitTime;
+      const existingDate = parseDate(existingEntry.visitDate);
+      let existingDateTime = null;
+      if (existingDate && existingEntry.visitTime) {
+        existingDateTime = new Date(existingDate);
+        const [hours, minutes] = parseTime(existingEntry.visitTime);
+        existingDateTime.setHours(hours, minutes, 0);
+      }
 
-      if (combinedDateTime > existingDateTime) {
+      if (combinedDateTime && (!existingDateTime || combinedDateTime > existingDateTime)) {
         latestComplaintStatusMap.set(complaintNumber, {
-          visitDate,
-          visitTime,
+          visitDate: visitDateStr,
+          visitTime: visitTimeStr,
           callStatus,
           submittedBy,
+          dateObj: combinedDateTime
         });
       }
     } else {
       latestComplaintStatusMap.set(complaintNumber, {
-        visitDate,
-        visitTime,
+        visitDate: visitDateStr,
+        visitTime: visitTimeStr,
         callStatus,
         submittedBy,
+        dateObj: combinedDateTime
       });
     }
   });
 
   // Update STATUS DATE, CURRENT COMPLAINT STATUS, and STATUS SUBMITTED BY
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
     if (latestComplaintStatusMap.has(complaintNumber)) {
       const latestData = latestComplaintStatusMap.get(complaintNumber);
@@ -110,128 +187,95 @@ function sortAndMergeColumnsToIndentTable() {
 
   // Update DIFFERENCE DAYS (S) using the oldest VISIT DATE
   const oldestComplaintStatusMap = new Map();
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
-    const visitDate = row[visitDateIndex];
-    const visitTime = row[visitTimeIndex] || "00:00";
-    const existingDateTime = new Date(visitDate + " " + visitTime);
-    const startDate = new Date(row[startDateIndex]);
+    const visitDate = parseDate(row[visitDateIndex]); // Parse the VISIT DATE
+    const startDate = parseDate(row[startDateIndex]); // Parse the START DATE
 
     if (oldestComplaintStatusMap.has(complaintNumber)) {
       const existingEntry = oldestComplaintStatusMap.get(complaintNumber);
-      if (existingDateTime < new Date(existingEntry.visitDate + " " + existingEntry.visitTime)) {
-        oldestComplaintStatusMap.set(complaintNumber, {
-          visitDate,
-          visitTime,
-          startDate,
-          existingDateTime,
-        });
+      if (visitDate < parseDate(existingEntry.visitDate)) { // Update map for oldest VISIT DATE
+        oldestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
       }
     } else {
-      oldestComplaintStatusMap.set(complaintNumber, {
-        visitDate,
-        visitTime,
-        startDate,
-        existingDateTime,
-      });
+      // Add new entry to the map
+      oldestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
     }
   });
 
   // Calculate and update DIFFERENCE DAYS (S)
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
     if (oldestComplaintStatusMap.has(complaintNumber)) {
       const oldestData = oldestComplaintStatusMap.get(complaintNumber);
-      const differenceDays = Math.max(
-        0,
-        Math.floor((oldestData.existingDateTime - oldestData.startDate) / (1000 * 60 * 60 * 24))
-      );
-      row[differenceDaysIndex] = differenceDays;
+      const differenceDays = Math.max(0, Math.floor((oldestData.visitDate - oldestData.startDate) / (1000 * 60 * 60 * 24))); // Difference in days
+      row[differenceDaysIndex] = differenceDays; // Update DIFFERENCE DAYS
     }
   });
 
-  // Update DIFFERENCE DAYS using the latest VISIT DATE
+  // Update DIFFERENCE DAYS (S) using the letest VISIT DATE
   const letestComplaintStatusMap = new Map();
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
-    const visitDate = row[visitDateIndex];
-    const visitTime = row[visitTimeIndex] || "00:00";
-    const existingDateTime = new Date(visitDate + " " + visitTime);
-    const startDate = new Date(row[startDateIndex]);
+    const visitDate = parseDate(row[visitDateIndex]); // Parse the VISIT DATE
+    const startDate = parseDate(row[startDateIndex]); // Parse the START DATE
 
     if (letestComplaintStatusMap.has(complaintNumber)) {
       const existingEntry = letestComplaintStatusMap.get(complaintNumber);
-      if (existingDateTime > new Date(existingEntry.visitDate + " " + existingEntry.visitTime)) {
-        letestComplaintStatusMap.set(complaintNumber, {
-          visitDate,
-          visitTime,
-          startDate,
-          existingDateTime,
-        });
+      if (visitDate > parseDate(existingEntry.visitDate)) { // Update map for letest VISIT DATE
+        letestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
       }
     } else {
-      letestComplaintStatusMap.set(complaintNumber, {
-        visitDate,
-        visitTime,
-        startDate,
-        existingDateTime,
-      });
+      // Add new entry to the map
+      letestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
     }
   });
 
-  // Update DIFFERENCE DAYS (T and U) based on CLOSED status
-  data.forEach((row) => {
+  // Update DIFFERENCE DAYS (T) based on CLOSED status in column P
+  data.forEach(row => {
     if (row[complaintStatusIndex] === "CLOSED") {
       const complaintNumber = row[complaintNumberIndex];
       if (letestComplaintStatusMap.has(complaintNumber)) {
         const letestData = letestComplaintStatusMap.get(complaintNumber);
-        const differenceDays = Math.max(
-          0,
-          Math.floor((letestData.existingDateTime - letestData.startDate) / (1000 * 60 * 60 * 24))
-        );
-        row[differenceDaysIndex2] = differenceDays;
-
+        const differenceDays = Math.max(0, Math.floor((letestData.visitDate - letestData.startDate) / (1000 * 60 * 60 * 24))); // Difference in days
+        row[differenceDaysIndex2] = differenceDays; // Update DIFFERENCE DAYS
         if (oldestComplaintStatusMap.has(complaintNumber)) {
           const oldestData = oldestComplaintStatusMap.get(complaintNumber);
-          const difference = Math.max(
-            0,
-            Math.floor(
-              (letestData.existingDateTime - oldestData.existingDateTime) / (1000 * 60 * 60 * 24)
-            )
-          );
-          row[differenceDaysIndex3] = difference;
+          const difference = Math.max(0, Math.floor((letestData.visitDate - oldestData.visitDate) / (1000 * 60 * 60 * 24))); // Difference in days
+          row[differenceDaysIndex3] = difference; // Update DIFFERENCE DAYS
         }
       }
     } else {
-      row[differenceDaysIndex2] = 0;
-      row[differenceDaysIndex3] = 0;
+      row[differenceDaysIndex2] = 0; // If not CLOSED, set column T to 0
+      row[differenceDaysIndex3] = 0; // If not CLOSED, set column U to 0
     }
   });
 
-  // Count all occurrences of VISIT DATE for each COMPLAINT NUMBER and update column V
+  // Count all unique TICKET NUMBERs for each COMPLAINT NUMBER and update column V
+  const ticketNumberIndex = 3; // Column D (TICKET NUMBER), adjust if needed
   const visitDateCountMap = new Map();
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
+    const ticketNumber = row[ticketNumberIndex];
     if (!visitDateCountMap.has(complaintNumber)) {
-      visitDateCountMap.set(complaintNumber, 0); // Initialize count
+      visitDateCountMap.set(complaintNumber, new Set());
     }
-    // Increment the count for this complaint number
-    visitDateCountMap.set(complaintNumber, visitDateCountMap.get(complaintNumber) + 1);
+    visitDateCountMap.get(complaintNumber).add(ticketNumber);
   });
 
   // Update the counts into column V (index 21)
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
     if (visitDateCountMap.has(complaintNumber)) {
-      row[countVisitDateIndex] = visitDateCountMap.get(complaintNumber); // Total count of VISIT DATES
+      row[countVisitDateIndex] = visitDateCountMap.get(complaintNumber).size; // Unique TICKET NUMBER count
     } else {
-      row[countVisitDateIndex] = 0; // Default to 0 if no VISIT DATE entries
+      row[countVisitDateIndex] = 0;
     }
   });
 
   // Sum up values from column AI for each unique complaint number
   const expenseSumMap = new Map(); // To store the sum of expenses per complaint number
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
     const expenseValue = parseFloat(row[expenseColumnIndex]) || 0; // Ensure numeric value or default to 0
     if (!expenseSumMap.has(complaintNumber)) {
@@ -241,7 +285,7 @@ function sortAndMergeColumnsToIndentTable() {
   });
 
   // Fill summed values into column W
-  data.forEach((row) => {
+  data.forEach(row => {
     const complaintNumber = row[complaintNumberIndex];
     if (expenseSumMap.has(complaintNumber)) {
       row[sumExpenseIndex] = expenseSumMap.get(complaintNumber); // Update column W with the sum
@@ -254,7 +298,7 @@ function sortAndMergeColumnsToIndentTable() {
   indentSheet.getRange(3, 1, data.length, data[0].length).setValues(data);
 
   // Format text colors for CLOSED and PENDING status in column P
-  const statusColors = data.map((row) => {
+  const statusColors = data.map(row => {
     const status = row[complaintStatusIndex];
     const colorArray = Array(row.length).fill(null);
     if (status === "CLOSED") {
@@ -273,11 +317,15 @@ function sortAndMergeColumnsToIndentTable() {
 
   // Set text wrapping for row 2
   const row2Range = indentSheet.getRange(2, 1, 1, sortedValues[0].length);
-  row2Range.setWrap(true).setFontSize(9).setFontWeight("bold");
+  row2Range.setWrap(true)
+    .setFontSize(8)
+    .setFontWeight('bold')
+    .setBackground('#003030')  // Dark Magenta 3
+    .setFontColor('white');    // White text
 
   // Highlight rows with PENDING status
   const dataRange = indentSheet.getRange(3, 1, data.length, data[0].length);
-  const backgrounds = data.map((row) => {
+  const backgrounds = data.map(row => {
     const isPending = row[complaintStatusIndex] === "PENDING";
     return Array(row.length).fill(isPending ? "#fcf9bb" : null); // Light yellow background for PENDING rows
   });
