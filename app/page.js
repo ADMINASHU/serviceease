@@ -10,7 +10,7 @@ import { useNewDataContext } from "@/components/DataProviderComponent";
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
-  const { fetchCPData, setStart, setEnd, start, end } = useCPContext();
+  const { fetchCPData, setStart, setEnd, start, end, cancelFetch, resetCancel, isCancelled } = useCPContext();
   const { fetchData } = useNewDataContext();
 
   const [localMonths, setLocalMonths] = useState([]);
@@ -71,23 +71,26 @@ const Home = () => {
           ))}
         </div>
         <br />
-        <label>
-          Year:
-          <input
-            type="number"
-            value={localYear}
-            onChange={(e) => setLocalYear(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <button type="submit">Save</button>
+        <div className={styles["year-row"]}>
+          <label>
+            Year:
+            <input
+              type="number"
+              value={localYear}
+              onChange={(e) => setLocalYear(e.target.value)}
+              required
+            />
+          </label>
+          <button type="submit">Save</button>
+        </div>
       </form>
-      <button onClick={fetchData}>Fetch Data</button>
-      <button onClick={fetchUserData}>Fetch Users Data</button>
+      <div className={styles["fetch-row"]}>
+        <button onClick={fetchData} className={styles["fetch-btn"]}>Fetch Data</button>
+        <button onClick={fetchUserData} className={styles["user-btn"]}>Fetch Users Data</button>
+      </div>
       
       <h1>Fetch CP Data</h1>
-      <div>
+      <div className={styles["range-row"]}>
         <label>Start:</label>
         <input
           type="number"
@@ -103,8 +106,18 @@ const Home = () => {
           placeholder="End"
         />
       </div>
-   
-      <button onClick={fetchCPData}>Fetch CP Data</button>
+      <div className={styles["button-row"]}>
+        <button onClick={fetchCPData} className={styles["cp-btn"]}>Fetch CP Data</button>
+        <span className={styles["status-label"]}>
+          Status: {isCancelled ? "Cancelled" : "Normal"}
+        </span>
+        <button
+          onClick={isCancelled ? resetCancel : cancelFetch}
+          className={isCancelled ? styles["reset-btn"] : styles["cancel-btn"]}
+        >
+          {isCancelled ? "Reset" : "Cancel"}
+        </button>
+      </div>
     </div>
   );
 };

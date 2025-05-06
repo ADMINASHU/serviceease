@@ -1,50 +1,295 @@
 .form-container {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px;
+  padding: 32px 40px;
+  max-width: 700px; /* Increased from 480px */
+  margin: 40px auto;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  gap: 12px;
 }
 
 .form-container h1 {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  font-size: 2rem;
+  color: #22223b;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .form-container label {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  font-size: 1rem;
+  color: #4a4e69;
+  font-weight: 500;
 }
 
 .form-container input {
-  margin-bottom: 15px;
-  padding: 5px;
-  width: 200px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #c9c9c9;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f8f8fa;
+  transition: border 0.2s;
+  box-sizing: border-box;
+  color: #22223b;
+}
+
+.form-container input:focus {
+  border: 1.5px solid #007bff;
+  outline: none;
+  background: #fff;
 }
 
 .month-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 10px;
+  width: 100%;
 }
 
 .month-buttons button {
-  padding: 10px 20px;
-  background-color: #007bff;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 40px;
+  padding: 0;
+  background: linear-gradient(90deg, #007bff 60%, #4f8cff 100%);
   color: white;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .month-buttons button.selected {
-  background-color: #b30000;
+  background: linear-gradient(90deg, #b30000 60%, #ff4f4f 100%);
+  color: #fff;
+  transform: scale(1.07);
+}
+
+.month-buttons button:hover {
+  background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .form-container button {
-  padding: 10px 20px;
-  background-color: #007bff;
+  padding: 10px 24px;
+  background: linear-gradient(90deg, #007bff 60%, #4f8cff 100%);
   color: white;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-right: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s;
 }
 
 .form-container button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.status-label {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #b30000;
+  font-size: 1.05rem;
+}
+
+.cancel-btn {
+  background: linear-gradient(90deg, #d32f2f 60%, #ff6659 100%);
+  color: #fff;
+}
+
+.cancel-btn:disabled {
+  background: #888;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  background: linear-gradient(90deg, #fbc02d 60%, #fff176 100%);
+  color: #333;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(90deg, #f9a825 60%, #fbc02d 100%);
+}
+
+.year-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.year-row label {
+  margin-bottom: 0;
+  font-size: 1rem;
+  color: #4a4e69;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+}
+
+.year-row input {
+  margin-bottom: 0;
+  margin-top: 2px;
+  width: 120px;
+}
+
+.year-row button {
+  margin-top: 0;
+  height: 40px;
+  align-self: flex-end;
+}
+
+.range-row {
+  display: flex;
+  align-items: center; /* changed from flex-end to center */
+  gap: 16px;
+  margin-bottom: 0;
+  margin-top: 8px;
+}
+
+.range-row label {
+  margin-bottom: 0;
+  font-size: 1rem;
+  color: #4a4e69;
+  font-weight: 500;
+  /* Ensure label is vertically centered */
+  display: flex;
+  align-items: center;
+}
+
+.range-row input {
+  margin-bottom: 0;
+  margin-top: 0; /* changed from 2px to 0 */
+  width: 120px;
+}
+
+.fetch-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.fetch-btn {
+  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.fetch-btn:hover {
+  background: linear-gradient(90deg, #0d47a1 60%, #1976d2 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.cp-btn {
+  background: linear-gradient(90deg, #8e24aa 60%, #ce93d8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.cp-btn:hover {
+  background: linear-gradient(90deg, #4a148c 60%, #8e24aa 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.user-btn {
+  background: linear-gradient(90deg, #388e3c 60%, #81c784 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.user-btn:hover {
+  background: linear-gradient(90deg, #1b5e20 60%, #388e3c 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (max-width: 700px) {
+  .form-container {
+    padding: 18px 8px;
+    max-width: 98vw;
+    font-size: 0.98rem;
+  }
+  .form-container h1 {
+    font-size: 1.3rem;
+  }
+  .month-buttons {
+    gap: 7px;
+  }
+  .button-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-container {
+    padding: 10px 2vw;
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 0.95rem;
+  }
+  .form-container input {
+    width: 100%;
+    font-size: 0.98rem;
+    padding: 8px 8px;
+  }
+  .month-buttons button {
+    font-size: 0.95rem;
+    padding: 7px 0;
+    min-width: 38px;
+  }
+  .button-row {
+    flex-direction: column;
+    gap: 6px;
+  }
 }
