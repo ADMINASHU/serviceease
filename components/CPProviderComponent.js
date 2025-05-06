@@ -97,6 +97,7 @@ export const CPProviderComponent = ({ children }) => {
   const resetCancel = () => {
     setIsCancelled(false);
     cancelRef.current = false;
+    setCurrentI(null); 
   };
 
   return (
