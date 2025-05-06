@@ -21,10 +21,8 @@ export const CPProviderComponent = ({ children }) => {
 
       for (let i = start; i < end; i++) {
         if (cancelRef.current) {
-          console.log("Fetch cancelled");
           break;
         }
-        console.log(i);
         const payload = { id: i };
 
         const promise = axios
