@@ -89,13 +89,13 @@ const Home = () => {
         <button onClick={fetchUserData} className={styles["user-btn"]}>Fetch Users Data</button>
       </div>
       <hr className={styles["section-divider"]} />
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <div className={styles["cp-header-row"]}>
         <h1>Fetch CP Data</h1>
         <span className={styles["status-label"]}>
           Status: {isCancelled ? "Cancelled" : isFetching ? "Running" : "Normal"}
         </span>
         {currentI !== null && (
-          <span style={{ color: "#8e24aa", fontWeight: 600 }}>
+          <span className={styles["processing-id"]}>
             Processing ID: {currentI}
           </span>
         )}
