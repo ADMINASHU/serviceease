@@ -10,7 +10,7 @@ import { useNewDataContext } from "@/components/DataProviderComponent";
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
-  const { fetchCPData } = useCPContext();
+  const { fetchCPData, setStart, setEnd, start, end } = useCPContext();
   const { fetchData } = useNewDataContext();
 
   const [localMonths, setLocalMonths] = useState([]);
@@ -85,6 +85,25 @@ const Home = () => {
       </form>
       <button onClick={fetchData}>Fetch Data</button>
       <button onClick={fetchUserData}>Fetch Users Data</button>
+      
+      <h1>Fetch CP Data</h1>
+      <div>
+        <label>Start:</label>
+        <input
+          type="number"
+          value={start}
+          onChange={(e) => setStart(e.target.value)}
+          placeholder="Start"
+        />
+        <label>End:</label>
+        <input
+          type="number"
+          value={end}
+          onChange={(e) => setEnd(e.target.value)}
+          placeholder="End"
+        />
+      </div>
+   
       <button onClick={fetchCPData}>Fetch CP Data</button>
     </div>
   );

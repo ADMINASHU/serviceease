@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
 
 const CPContext = createContext();
@@ -72,6 +72,9 @@ const CPContext = createContext();
 //   return <CPContext.Provider value={{ fetchCPData }}>{children}</CPContext.Provider>;
 // };
 export const CPProviderComponent = ({ children }) => {
+
+  const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(0);
   const fetchCPData = async () => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -79,7 +82,7 @@ export const CPProviderComponent = ({ children }) => {
       const cookiesResponse = await axios.post("/api/get-cookies");
       const promises = [];
 
-      for (let i = 45000; i < 65000; i++) {
+      for (let i = start; i < end; i++) {
         const payload = { id: i };
 
         const promise = axios
@@ -129,8 +132,9 @@ export const CPProviderComponent = ({ children }) => {
     }
   };
 
-  return <CPContext.Provider value={{ fetchCPData }}>{children}</CPContext.Provider>;
+  return <CPContext.Provider value={{ fetchCPData,start,end, setStart, setEnd }}>{children}</CPContext.Provider>;
 };
 
 
 export const useCPContext = () => useContext(CPContext);
+  
