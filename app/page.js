@@ -92,7 +92,7 @@ const Home = () => {
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <h1>Fetch CP Data</h1>
         <span className={styles["status-label"]}>
-          Status: {isCancelled ? "Cancelled" : "Normal"}
+          Status: {isCancelled ? "Cancelled" : isFetching ? "Running" : "Normal"}
         </span>
         {currentI !== null && (
           <span style={{ color: "#8e24aa", fontWeight: 600 }}>

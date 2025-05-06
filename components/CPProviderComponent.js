@@ -92,6 +92,7 @@ export const CPProviderComponent = ({ children }) => {
   const cancelFetch = () => {
     setIsCancelled(true);
     cancelRef.current = true;
+    setIsFetching(false); // Reset fetching state
   };
 
   const resetCancel = () => {
