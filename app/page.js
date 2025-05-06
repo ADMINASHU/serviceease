@@ -10,7 +10,7 @@ import { useNewDataContext } from "@/components/DataProviderComponent";
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
-  const { fetchCPData, setStart, setEnd, start, end, cancelFetch, resetCancel, isCancelled } = useCPContext();
+  const { fetchCPData, setStart, setEnd, start, end, cancelFetch, resetCancel, isCancelled, currentI, isFetching } = useCPContext();
   const { fetchData } = useNewDataContext();
 
   const [localMonths, setLocalMonths] = useState([]);
@@ -94,6 +94,11 @@ const Home = () => {
         <span className={styles["status-label"]}>
           Status: {isCancelled ? "Cancelled" : "Normal"}
         </span>
+        {currentI !== null && (
+          <span style={{ color: "#8e24aa", fontWeight: 600 }}>
+            Processing ID: {currentI}
+          </span>
+        )}
       </div>
       <div className={styles["range-row"]}>
         <label>Start:</label>
@@ -112,7 +117,13 @@ const Home = () => {
         />
       </div>
       <div className={styles["button-row"]}>
-        <button onClick={fetchCPData} className={styles["cp-btn"]}>Fetch CP Data</button>
+        <button
+          onClick={fetchCPData}
+          className={styles["cp-btn"]}
+          disabled={isFetching}
+        >
+          {isFetching ? "Fetching..." : "Fetch CP Data"}
+        </button>
         <button
           onClick={isCancelled ? resetCancel : cancelFetch}
           className={isCancelled ? styles["reset-btn"] : styles["cancel-btn"]}

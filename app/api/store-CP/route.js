@@ -30,11 +30,14 @@ export async function POST(request) {
     // Store transformed data in chunks
     const finalData = allCPData.filter((item) => item.custId !== null && item.custId !== undefined && item.custId !== "");
     await storeDataInChunks(finalData);
-    
+
+    // Return only the count of currently saved data
+    const currentSaved = finalData.length;
 
     return NextResponse.json(
       {
         message: "Data synced successfully",
+        currentSaved,
       },
       { status: 200 }
     );

@@ -8,11 +8,16 @@ export const CPProviderComponent = ({ children }) => {
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
   const [isCancelled, setIsCancelled] = useState(false);
+  const [currentI, setCurrentI] = useState(null); // Track current i value
+  const [isFetching, setIsFetching] = useState(false); // Add fetching state
   const cancelRef = useRef(false);
 
   const fetchCPData = async () => {
+    if (isFetching) return; // Prevent concurrent fetches
+    setIsFetching(true);
     setIsCancelled(false);
     cancelRef.current = false; // Reset cancel flag at the start
+    setCurrentI(null); // Reset currentI at the start
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
@@ -23,6 +28,7 @@ export const CPProviderComponent = ({ children }) => {
         if (cancelRef.current) {
           break;
         }
+        setCurrentI(i); // Update current i value
         const payload = { id: i };
 
         const promise = axios
@@ -61,13 +67,25 @@ export const CPProviderComponent = ({ children }) => {
         for (let i = 0; i < data.length; i += chunkSize) {
           const chunk = data.slice(i, i + chunkSize);
           const storePayload = { allCPData: chunk };
-          await axios.post("/api/store-CP", storePayload);
+          try {
+            const resp =  await axios.post("/api/store-CP", storePayload);
+            if (resp?.data?.currentSaved !== undefined) {
+              setCurrentI(resp.data.currentSaved);
+            } else {
+              setCurrentI(null);
+            }
+          } catch {
+            setCurrentI(null);
+          }
         }
       };
 
       await storeDataInChunks(allCPData);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setCurrentI(null);
+    } finally {
+      setIsFetching(false); // Reset fetching state
     }
   };
 
@@ -83,7 +101,18 @@ export const CPProviderComponent = ({ children }) => {
 
   return (
     <CPContext.Provider
-      value={{ fetchCPData, start, end, setStart, setEnd, cancelFetch, resetCancel, isCancelled }}
+      value={{
+        fetchCPData,
+        start,
+        end,
+        setStart,
+        setEnd,
+        cancelFetch,
+        resetCancel,
+        isCancelled,
+        currentI, // Expose currentI
+        isFetching, // Expose isFetching
+      }}
     >
       {children}
     </CPContext.Provider>
