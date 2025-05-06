@@ -70,7 +70,6 @@ const Home = () => {
             </button>
           ))}
         </div>
-        <br />
         <div className={styles["year-row"]}>
           <label>
             Year:
@@ -84,12 +83,18 @@ const Home = () => {
           <button type="submit">Save</button>
         </div>
       </form>
+      <hr className={styles["section-divider"]} />
       <div className={styles["fetch-row"]}>
         <button onClick={fetchData} className={styles["fetch-btn"]}>Fetch Data</button>
         <button onClick={fetchUserData} className={styles["user-btn"]}>Fetch Users Data</button>
       </div>
-      
-      <h1>Fetch CP Data</h1>
+      <hr className={styles["section-divider"]} />
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <h1>Fetch CP Data</h1>
+        <span className={styles["status-label"]}>
+          Status: {isCancelled ? "Cancelled" : "Normal"}
+        </span>
+      </div>
       <div className={styles["range-row"]}>
         <label>Start:</label>
         <input
@@ -108,9 +113,6 @@ const Home = () => {
       </div>
       <div className={styles["button-row"]}>
         <button onClick={fetchCPData} className={styles["cp-btn"]}>Fetch CP Data</button>
-        <span className={styles["status-label"]}>
-          Status: {isCancelled ? "Cancelled" : "Normal"}
-        </span>
         <button
           onClick={isCancelled ? resetCancel : cancelFetch}
           className={isCancelled ? styles["reset-btn"] : styles["cancel-btn"]}

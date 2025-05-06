@@ -5,19 +5,27 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 32px 40px;
-  max-width: 700px; /* Increased from 480px */
-  margin: 40px auto;
+  padding: 40px 48px;
+  max-width: 700px;
+  margin: 48px auto;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-  gap: 12px;
+  gap: 18px;
 }
 
 .form-container h1 {
-  margin-bottom: 18px;
-  font-size: 2rem;
+  margin-bottom: 10px;
+  font-size: 1.7rem;
   color: #22223b;
   font-weight: 700;
   letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.section-divider {
+  width: 100%;
+  border: none;
+  border-top: 1.5px solid #ececec;
+  margin: 18px 0 10px 0;
 }
 
 .form-container label {
@@ -36,7 +44,7 @@
   border-radius: 6px;
   font-size: 1rem;
   background: #f8f8fa;
-  transition: border 0.2s;
+  transition: border 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   color: #22223b;
 }
@@ -45,6 +53,7 @@
   border: 1.5px solid #007bff;
   outline: none;
   background: #fff;
+  box-shadow: 0 0 0 2px #e3f2fd;
 }
 
 .month-buttons {
@@ -53,6 +62,10 @@
   gap: 10px;
   margin-bottom: 10px;
   width: 100%;
+  padding: 12px 0 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ececec;
+  background: #fafaff;
 }
 
 .month-buttons button {
@@ -67,7 +80,7 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
@@ -79,10 +92,13 @@
   background: linear-gradient(90deg, #b30000 60%, #ff4f4f 100%);
   color: #fff;
   transform: scale(1.07);
+  box-shadow: 0 2px 8px rgba(179,0,0,0.10);
 }
 
-.month-buttons button:hover {
+.month-buttons button:hover,
+.month-buttons button:focus {
   background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
+  box-shadow: 0 2px 8px rgba(0,123,255,0.10);
 }
 
 .button-row {
@@ -105,12 +121,95 @@
   margin-top: 0;
   margin-right: 0;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
-.form-container button:hover {
+.form-container button:hover,
+.form-container button:focus {
   background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
   transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+}
+
+.form-container .fetch-btn {
+  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.form-container .fetch-btn:hover,
+.form-container .fetch-btn:focus {
+  background: linear-gradient(90deg, #0d47a1 60%, #1976d2 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 2px 8px rgba(25,118,210,0.10);
+}
+
+.form-container .cp-btn {
+  background: linear-gradient(90deg, #8e24aa 60%, #ce93d8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.form-container .cp-btn:hover,
+.form-container .cp-btn:focus {
+  background: linear-gradient(90deg, #4a148c 60%, #8e24aa 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 2px 8px rgba(142,36,170,0.10);
+}
+
+.form-container .user-btn {
+  background: linear-gradient(90deg, #388e3c 60%, #81c784 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.form-container .user-btn:hover,
+.form-container .user-btn:focus {
+  background: linear-gradient(90deg, #1b5e20 60%, #388e3c 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 2px 8px rgba(56,142,60,0.10);
+}
+
+/* Move and increase specificity for cancel/reset buttons */
+.form-container .cancel-btn {
+  background: linear-gradient(90deg, #d32f2f 60%, #ff6659 100%) !important;
+  color: #fff !important;
+}
+
+.form-container .cancel-btn:disabled {
+  background: #888 !important;
+  cursor: not-allowed;
+}
+
+.form-container .reset-btn {
+  background: linear-gradient(90deg, #fbc02d 60%, #fff176 100%) !important;
+  color: #333 !important;
+}
+
+.form-container .reset-btn:hover,
+.form-container .reset-btn:focus {
+  background: linear-gradient(90deg, #f9a825 60%, #fbc02d 100%) !important;
 }
 
 .status-label {
@@ -118,25 +217,7 @@
   font-weight: bold;
   color: #b30000;
   font-size: 1.05rem;
-}
-
-.cancel-btn {
-  background: linear-gradient(90deg, #d32f2f 60%, #ff6659 100%);
-  color: #fff;
-}
-
-.cancel-btn:disabled {
-  background: #888;
-  cursor: not-allowed;
-}
-
-.reset-btn {
-  background: linear-gradient(90deg, #fbc02d 60%, #fff176 100%);
-  color: #333;
-}
-
-.reset-btn:hover {
-  background: linear-gradient(90deg, #f9a825 60%, #fbc02d 100%);
+  align-self: center;
 }
 
 .year-row {
@@ -169,7 +250,7 @@
 
 .range-row {
   display: flex;
-  align-items: center; /* changed from flex-end to center */
+  align-items: center;
   gap: 16px;
   margin-bottom: 0;
   margin-top: 8px;
@@ -180,14 +261,13 @@
   font-size: 1rem;
   color: #4a4e69;
   font-weight: 500;
-  /* Ensure label is vertically centered */
   display: flex;
   align-items: center;
 }
 
 .range-row input {
   margin-bottom: 0;
-  margin-top: 0; /* changed from 2px to 0 */
+  margin-top: 0;
   width: 120px;
 }
 
@@ -198,75 +278,17 @@
   margin-bottom: 8px;
 }
 
-.fetch-btn {
-  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: background 0.2s, transform 0.1s;
-}
-
-.fetch-btn:hover {
-  background: linear-gradient(90deg, #0d47a1 60%, #1976d2 100%);
-  transform: translateY(-2px) scale(1.03);
-}
-
-.cp-btn {
-  background: linear-gradient(90deg, #8e24aa 60%, #ce93d8 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: background 0.2s, transform 0.1s;
-}
-
-.cp-btn:hover {
-  background: linear-gradient(90deg, #4a148c 60%, #8e24aa 100%);
-  transform: translateY(-2px) scale(1.03);
-}
-
-.user-btn {
-  background: linear-gradient(90deg, #388e3c 60%, #81c784 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: background 0.2s, transform 0.1s;
-}
-
-.user-btn:hover {
-  background: linear-gradient(90deg, #1b5e20 60%, #388e3c 100%);
-  transform: translateY(-2px) scale(1.03);
-}
-
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .form-container {
     padding: 18px 8px;
     max-width: 98vw;
     font-size: 0.98rem;
   }
   .form-container h1 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
   .month-buttons {
     gap: 7px;
-  }
-  .button-row {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 
@@ -278,6 +300,9 @@
     box-shadow: none;
     font-size: 0.95rem;
   }
+  .form-container h1 {
+    font-size: 1rem;
+  }
   .form-container input {
     width: 100%;
     font-size: 0.98rem;
@@ -288,8 +313,6 @@
     padding: 7px 0;
     min-width: 38px;
   }
-  .button-row {
-    flex-direction: column;
-    gap: 6px;
-  }
+  
+
 }
