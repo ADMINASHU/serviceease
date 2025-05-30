@@ -98,14 +98,18 @@ function fetch() {
   // Push optimized data back in a single batch
   indentSheet.getRange(3, 1, data.length, data[0].length).setValues(data);
 
+  // Unmerge all merged cells in the data range before merging new groups
+  indentSheet.getRange(3, 1, data.length, 25).breakApart();
+
   // Merge all 25 columns for rows with the same COMPLAINT NUMBER and fill with the first row's data
   let mergeStartRow = 3; // Start merging from row 3 (excluding headers)
   for (let i = 4; i <= data.length + 2; i++) {
     const currentComplaint = i <= data.length + 2 ? data[i - 1 - 2][complaintNumberIndex] : null;
     const previousComplaint = data[i - 2 - 2] ? data[i - 2 - 2][complaintNumberIndex] : null;
 
+    const groupSize = i - mergeStartRow;
     if (currentComplaint !== previousComplaint || i > data.length + 2) {
-      if (mergeStartRow <= i - 1) {
+      if (mergeStartRow <= i - 1 && groupSize > 1) {
         // Fill all rows in the group with the first row's data, except TICKET NUMBER (index 1)
         const fillData = data[mergeStartRow - 3].slice(0, 25);
         for (let j = mergeStartRow; j < i; j++) {
@@ -114,8 +118,8 @@ function fetch() {
             data[j - 3][k] = fillData[k];
           }
         }
-        // Merge vertically for all 25 columns except TICKET NUMBER
-        indentSheet.getRange(mergeStartRow, 1, i - mergeStartRow, 25).mergeVertically();
+        // Only merge if more than one row in the group
+        indentSheet.getRange(mergeStartRow, 1, groupSize, 25).mergeVertically();
       }
       mergeStartRow = i;
     }
