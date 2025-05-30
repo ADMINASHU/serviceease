@@ -13,6 +13,18 @@ function parseTime(timeStr) {
   return parts.length === 2 ? [parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0] : [0, 0];
 }
 
+// Helper to parse date and time into a Date object
+function parseDateTime(dateVal, timeVal) {
+  const date = parseDate(dateVal);
+  if (!date) return null;
+  let hours = 0, minutes = 0;
+  if (typeof timeVal !== 'undefined') {
+    [hours, minutes] = parseTime(timeVal);
+  }
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+
 function fetch() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet();
   const entrySheet = sheet.getSheetByName("Complaints");
@@ -40,25 +52,69 @@ function fetch() {
   const oldestComplaintStatusMap = new Map();
   const ticketNumberCountMap = new Map();
   const expenseSumMap = new Map();
+  const letestComplaintStatusMap = new Map();
 
   data.forEach(row => {
+
     const complaintNumber = row[complaintNumberIndex];
-    const visitDate = parseDate(row[visitDateIndex]);
-    const startDate = parseDate(row[startDateIndex]);
-    const callStatus = row[callStatusIndex], submittedBy = row[submittedByIndex];
-    const expenseValue = parseFloat(row[expenseColumnIndex]) || 0;
+    const visitDateStr = row[visitDateIndex];
+    const visitTimeStr = row[visitTimeIndex];
     const ticketNumber = row[ticketNumberIndex];
+    const expenseValue = parseFloat(row[expenseColumnIndex]) || 0;
+    const callStatus = row[callStatusIndex];
+    const submittedBy = row[submittedByIndex];
+    const startDate = parseDate(row[startDateIndex]);
 
-    // Latest Complaint Status Tracking
-    if (!latestComplaintStatusMap.has(complaintNumber) || visitDate > parseDate(latestComplaintStatusMap.get(complaintNumber).visitDate)) {
-      latestComplaintStatusMap.set(complaintNumber, { visitDate, startDate, callStatus, submittedBy });
+    // Create date object and set time
+    const visitDate = parseDate(visitDateStr);
+    let combinedDateTime = null;
+    if (visitDate) {
+      combinedDateTime = new Date(visitDate);
+      const [hours, minutes] = parseTime(visitTimeStr);
+      combinedDateTime.setHours(hours, minutes, 0);
     }
 
-    // Oldest Complaint Status Tracking
-    if (!oldestComplaintStatusMap.has(complaintNumber) || visitDate < parseDate(oldestComplaintStatusMap.get(complaintNumber).visitDate)) {
-      oldestComplaintStatusMap.set(complaintNumber, { visitDate, startDate });
+    if (latestComplaintStatusMap.has(complaintNumber)) {
+      const existingEntry = latestComplaintStatusMap.get(complaintNumber);
+      const existingDate = parseDate(existingEntry.visitDate);
+      let existingDateTime = null;
+      if (existingDate && existingEntry.visitTime) {
+        existingDateTime = new Date(existingDate);
+        const [hours, minutes] = parseTime(existingEntry.visitTime);
+        existingDateTime.setHours(hours, minutes, 0);
+      }
+
+      if (combinedDateTime && (!existingDateTime || combinedDateTime > existingDateTime)) {
+        latestComplaintStatusMap.set(complaintNumber, {
+          visitDate: visitDateStr,
+          startDate,
+          callStatus,
+          submittedBy,
+          dateObj: combinedDateTime
+        });
+      }
+    } else {
+      latestComplaintStatusMap.set(complaintNumber, {
+        visitDate: visitDateStr,
+        visitTime: visitTimeStr,
+        startDate,
+        callStatus,
+        submittedBy,
+        dateObj: combinedDateTime
+      });
     }
 
+    if (oldestComplaintStatusMap.has(complaintNumber)) {
+      const existingEntry = oldestComplaintStatusMap.get(complaintNumber);
+      if (visitDate < parseDate(existingEntry.visitDate)) { // Update map for oldest VISIT DATE
+        oldestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
+      }
+    } else {
+      // Add new entry to the map
+      oldestComplaintStatusMap.set(complaintNumber, { visitDate: visitDate, startDate: startDate });
+    }
+
+    
     // Track Ticket Numbers Count
     if (!ticketNumberCountMap.has(complaintNumber)) ticketNumberCountMap.set(complaintNumber, new Set());
     if (ticketNumber) ticketNumberCountMap.get(complaintNumber).add(ticketNumber);
@@ -72,26 +128,36 @@ function fetch() {
     const complaintNumber = row[complaintNumberIndex];
     if (latestComplaintStatusMap.has(complaintNumber)) {
       const latestData = latestComplaintStatusMap.get(complaintNumber);
+      // console.log(latestData);
       row[statusDateIndex] = latestData.visitDate;
       row[complaintStatusIndex] = latestData.callStatus;
       row[statusSubmittedByIndex] = latestData.submittedBy;
+
+      if (row[complaintStatusIndex] === "CLOSED") {
+         row[differenceDaysIndex2] = Math.max(0, Math.floor((latestData.visitDate - latestData.startDate) / (1000 * 60 * 60 * 24)));
+        if (oldestComplaintStatusMap.has(complaintNumber)) {
+          const oldestData = oldestComplaintStatusMap.get(complaintNumber);
+
+          row[differenceDaysIndex3] =  Math.max(0, Math.floor((latestData.visitDate - oldestData.visitDate) / (1000 * 60 * 60 * 24))); 
+        }
+      } else {
+        row[differenceDaysIndex2] = 0; // If not CLOSED, set column T to 0
+        row[differenceDaysIndex3] = 0; // If not CLOSED, set column U to 0
+      }
+
+
+
     }
     if (oldestComplaintStatusMap.has(complaintNumber)) {
       const oldestData = oldestComplaintStatusMap.get(complaintNumber);
-      row[differenceDaysIndex] = Math.max(0, Math.floor((oldestData.visitDate - oldestData.startDate) / (1000 * 60 * 60 * 24)));
+      row[differenceDaysIndex] = Math.max(0, Math.floor((oldestData.visitDate - oldestData.startDate) / (1000 * 60 * 60 * 24))) || 0;
     }
-    if (row[complaintStatusIndex] === "CLOSED" && latestComplaintStatusMap.has(complaintNumber)) {
-      const latestData = latestComplaintStatusMap.get(complaintNumber);
-      row[differenceDaysIndex2] = Math.max(0, Math.floor((latestData.visitDate - latestData.startDate) / (1000 * 60 * 60 * 24)));
-      if (oldestComplaintStatusMap.has(complaintNumber)) {
-        const oldestData = oldestComplaintStatusMap.get(complaintNumber);
-        row[differenceDaysIndex3] = Math.max(0, Math.floor((latestData.visitDate - oldestData.visitDate) / (1000 * 60 * 60 * 24)));
-      }
+
+    if (ticketNumberCountMap.has(complaintNumber)) {
+      row[countVisitIndex] = ticketNumberCountMap.get(complaintNumber).size; // Unique TICKET NUMBER count
     } else {
-      row[differenceDaysIndex2] = 0;
-      row[differenceDaysIndex3] = 0;
+      row[countVisitIndex] = 0;
     }
-    row[countVisitIndex] = ticketNumberCountMap.has(complaintNumber) ? ticketNumberCountMap.get(complaintNumber).size : 0;
     row[sumExpenseIndex] = expenseSumMap.get(complaintNumber) || 0;
   });
 
