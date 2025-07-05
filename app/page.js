@@ -52,7 +52,7 @@ const Home = () => {
       if (intervalId) clearInterval(intervalId);
     };
     // Remove 'time' from dependencies
-  }, [isFetching, apiCompleted, currentI]);
+  }, [isFetching, apiCompleted, currentI,start]);
 
   const [localMonths, setLocalMonths] = useState([]);
   const [localYear, setLocalYear] = useState("");
