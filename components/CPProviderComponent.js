@@ -7,7 +7,7 @@ const CPContext = createContext();
 export const CPProviderComponent = ({ children }) => {
   const [apiTotal, setApiTotal] = useState(0);
   const [apiCompleted, setApiCompleted] = useState(0);
-  const [start, setStart] = useState(0);
+  const [start, setStart] = useState(1); // Default to 1 instead of 0
   const [end, setEnd] = useState(0);
   const [time, setTime] = useState(300); // Track time taken for fetching
   const timeRef = useRef(time);
@@ -23,6 +23,11 @@ export const CPProviderComponent = ({ children }) => {
 
   const fetchCPData = async () => {
     if (isFetching) return; // Prevent concurrent fetches
+    // Ensure start and end are numbers
+    const startNum = Number(start);
+    const endNum = Number(end);
+    if (isNaN(startNum) || isNaN(endNum) || startNum >= endNum) return; // Prevent invalid range
+
     setIsFetching(true);
     setIsCancelled(false);
     cancelRef.current = false; // Reset cancel flag at the start
@@ -30,7 +35,7 @@ export const CPProviderComponent = ({ children }) => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // Calculate total API requests (2 per i)
-    const totalRequests = (end - start) * 2;
+    const totalRequests = (endNum - startNum) * 2;
     setApiTotal(totalRequests);
     setApiCompleted(0);
 
@@ -38,7 +43,7 @@ export const CPProviderComponent = ({ children }) => {
       const cookiesResponse = await axios.post("/api/get-cookies");
       const promises = [];
 
-      for (let i = start; i < end; i++) {
+      for (let i = startNum; i < endNum; i++) {
         if (cancelRef.current) {
           break;
         }
