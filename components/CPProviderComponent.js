@@ -9,7 +9,7 @@ export const CPProviderComponent = ({ children }) => {
   const [apiCompleted, setApiCompleted] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
-  const [time, setTime] = useState(999); // Track time taken for fetching
+  const [time, setTime] = useState(300); // Track time taken for fetching
   const timeRef = useRef(time);
   const [isCancelled, setIsCancelled] = useState(false);
   const [currentI, setCurrentI] = useState(null); // Track current i value
