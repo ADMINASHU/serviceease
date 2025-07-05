@@ -23,6 +23,7 @@ const Home = () => {
     isFetching,
     time,
     setTime,
+    apiTotal,
     apiCompleted,
   } = useCPContext();
   const { fetchData } = useNewDataContext();
@@ -92,6 +93,20 @@ const Home = () => {
       console.error("Error saving data:", error);
     }
   };
+
+  // Helper to format seconds as hh:mm:ss
+  function formatDuration(seconds) {
+    const sec = Math.floor(seconds % 60);
+    const min = Math.floor((seconds / 60) % 60);
+    const hr = Math.floor(seconds / 3600);
+    return [
+      hr > 0 ? String(hr).padStart(2, "0") : null,
+      min > 0 || hr > 0 ? String(min).padStart(2, "0") : null,
+      String(sec).padStart(2, "0"),
+    ]
+      .filter((v) => v !== null)
+      .join(":");
+  }
 
   return (
     <div className={styles["form-container"]}>
@@ -178,7 +193,7 @@ const Home = () => {
           {isCancelled ? "Reset" : "Cancel"}
         </button>
         <span className={styles["slider-value"]}>
-          Completed: {Math.floor(apiCompleted / 2)}
+         Left: {Math.floor((apiTotal - apiCompleted)/2)} in {formatDuration((apiTotal - apiCompleted) * (time / 1000))}
         </span>
       </div>
     </div>
