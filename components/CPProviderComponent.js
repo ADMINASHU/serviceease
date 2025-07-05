@@ -5,7 +5,7 @@ import axios from "axios";
 const CPContext = createContext();
 
 export const CPProviderComponent = ({ children }) => {
-  const [apiTotal, setApiTotal] = useState(0);
+  // const [apiTotal, setApiTotal] = useState(0);
   const [apiCompleted, setApiCompleted] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
@@ -30,8 +30,8 @@ export const CPProviderComponent = ({ children }) => {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // Calculate total API requests (2 per i)
-    const totalRequests = (end - start) * 2;
-    setApiTotal(totalRequests);
+    // const totalRequests = (end - start) * 2;
+    // setApiTotal(totalRequests);
     setApiCompleted(0);
 
     try {
@@ -136,7 +136,7 @@ export const CPProviderComponent = ({ children }) => {
         currentI, // Expose currentI
         isFetching, // Expose isFetching
         timeRef, // Expose timeRef if needed elsewhere
-        apiTotal,
+        // apiTotal,
         apiCompleted,
       }}
     >
