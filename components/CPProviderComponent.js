@@ -39,6 +39,8 @@ export const CPProviderComponent = ({ children }) => {
     setApiTotal(totalRequests);
     setApiCompleted(0);
 
+    let allCPData = []; // <-- Move this here to collect during loop
+
     try {
       const cookiesResponse = await axios.post("/api/get-cookies");
       const promises = [];
@@ -50,15 +52,20 @@ export const CPProviderComponent = ({ children }) => {
         setCurrentI(i); // Update current i value
         const payload = { id: i };
 
+        // Collect both API responses for this i
         const promise = axios
           .post("/api/cpData", {
             payload,
             cookies: cookiesResponse.data.cookies,
           })
-          .then(() => setApiCompleted((prev) => prev + 1))
+          .then((cpDataResponse) => {
+            setApiCompleted((prev) => prev + 1);
+            return cpDataResponse;
+          })
           .catch((error) => {
             console.error(`Error fetching cpData for id ${i}:`, error);
             setApiCompleted((prev) => prev + 1);
+            return null;
           });
 
         const promise2 = axios
@@ -66,26 +73,30 @@ export const CPProviderComponent = ({ children }) => {
             payload,
             cookies: cookiesResponse.data.cookies,
           })
-          .then(() => setApiCompleted((prev) => prev + 1))
+          .then((cpDataCallResponse) => {
+            setApiCompleted((prev) => prev + 1);
+            return cpDataCallResponse;
+          })
           .catch((error) => {
             console.error(`Error fetching cpDataCall for id ${i}:`, error);
             setApiCompleted((prev) => prev + 1);
+            return null;
           });
 
-        promises.push(Promise.all([promise, promise2]));
-        // Use the latest time value from the ref
-        await delay(timeRef.current);
+        // Wait for both to finish for this i
+        const [cpDataResponse, cpDataCallResponse] = await Promise.all([promise, promise2]);
+        if (cpDataResponse && cpDataCallResponse) {
+          const callIds = cpDataCallResponse?.data?.transformedData || [];
+          const ArrCPData = { ...cpDataResponse?.data?.CPData, callIds };
+          if (ArrCPData.id !== undefined) {
+            allCPData.push(ArrCPData);
+          }
+        }
+
+        await delay(timeRef.current ?? 300);
       }
 
-      const cpResponses = await Promise.all(promises);
-      let allCPData = [];
-      let ArrCPData = {};
-      cpResponses.forEach((responseArray) => {
-        const [cpDataResponse, cpDataCallResponse] = responseArray;
-        const callIds = cpDataCallResponse?.data?.transformedData || [];
-        ArrCPData = { ...cpDataResponse?.data?.CPData, callIds };
-        allCPData = [...allCPData, ArrCPData].filter((item) => item.id !== undefined);
-      });
+      // Store all collected data after the loop
       const storeDataInChunks = async (data) => {
         const chunkSize = 500;
         for (let i = 0; i < data.length; i += chunkSize) {
@@ -104,7 +115,9 @@ export const CPProviderComponent = ({ children }) => {
         }
       };
 
-      await storeDataInChunks(allCPData);
+      if (allCPData.length > 0) {
+        await storeDataInChunks(allCPData);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       setCurrentI(null);

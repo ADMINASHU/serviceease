@@ -39,14 +39,16 @@ const Home = () => {
       // console.log(apiCompleted, "apiCompleted");
       if (isFetching) {
         if (diff > 5) {
-          setTime((prev) => (prev < 1000 ? Math.min(1000, prev + 2) : prev));
+          setTime((prev) => (prev < 1000 ? Math.min(1000, prev + 1) : prev));
         } else if (diff <= 5) {
-          setTime((prev) => (prev > 1 ? Math.max(1, prev - 2) : prev));
+          setTime((prev) => (prev > 1 ? Math.max(1, prev - 1) : prev));
         }
+      }else {
+        setTime(300); // Reset to default when not fetching
       }
     }
     if (isFetching) {
-      intervalId = setInterval(adjustTime, 50);
+      intervalId = setInterval(adjustTime, 60);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);
