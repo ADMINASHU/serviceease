@@ -37,10 +37,10 @@ const Home = () => {
       // console.log(currentI, "currentI");
       // console.log(apiCompleted, "apiCompleted");
       if (isFetching) {
-        if (diff > 10) {
-          setTime((prev) => (prev < 1000 ? Math.min(1000, prev + 1) : prev));
-        } else if (diff <= 10) {
-          setTime((prev) => (prev > 1 ? Math.max(1, prev - 1) : prev));
+        if (diff > 5) {
+          setTime((prev) => (prev < 1000 ? Math.min(1000, prev + 2) : prev));
+        } else if (diff <= 5) {
+          setTime((prev) => (prev > 1 ? Math.max(1, prev - 2) : prev));
         }
       }
     }
