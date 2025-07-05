@@ -33,7 +33,7 @@ const Home = () => {
     let intervalId;
     function adjustTime() {
       const completedI = Math.floor(apiCompleted / 2);
-      const diff = currentI - completedI;
+      const diff = currentI - start - completedI;
       // console.log(diff, "diff");
       // console.log(currentI, "currentI");
       // console.log(apiCompleted, "apiCompleted");
