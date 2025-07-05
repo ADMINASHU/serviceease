@@ -23,6 +23,7 @@ const Home = () => {
     isFetching,
     time,
     setTime,
+    apiCompleted,
   } = useCPContext();
   const { fetchData } = useNewDataContext();
 
@@ -132,8 +133,8 @@ const Home = () => {
         />
         <input
           type="range"
-          min="1"
-          max="1000"
+          min={1}
+          max={1000}
           value={time}
           onChange={(e) => setTime(Number(e.target.value))}
           className={styles["slider"]}
@@ -150,6 +151,9 @@ const Home = () => {
         >
           {isCancelled ? "Reset" : "Cancel"}
         </button>
+        <span className={styles["slider-value"]}>
+          Completed: {apiCompleted/2}
+        </span>
       </div>
     </div>
   );

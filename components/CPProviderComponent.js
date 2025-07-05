@@ -5,13 +5,21 @@ import axios from "axios";
 const CPContext = createContext();
 
 export const CPProviderComponent = ({ children }) => {
+  // const [apiTotal, setApiTotal] = useState(0);
+  const [apiCompleted, setApiCompleted] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
   const [time, setTime] = useState(300); // Track time taken for fetching
+  const timeRef = useRef(time);
   const [isCancelled, setIsCancelled] = useState(false);
   const [currentI, setCurrentI] = useState(null); // Track current i value
   const [isFetching, setIsFetching] = useState(false); // Add fetching state
   const cancelRef = useRef(false);
+
+  // Keep timeRef in sync with time state
+  React.useEffect(() => {
+    timeRef.current = time;
+  }, [time]);
 
   const fetchCPData = async () => {
     if (isFetching) return; // Prevent concurrent fetches
@@ -20,6 +28,11 @@ export const CPProviderComponent = ({ children }) => {
     cancelRef.current = false; // Reset cancel flag at the start
     setCurrentI(null); // Reset currentI at the start
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Calculate total API requests (2 per i)
+    // const totalRequests = (end - start) * 2;
+    // setApiTotal(totalRequests);
+    setApiCompleted(0);
 
     try {
       const cookiesResponse = await axios.post("/api/get-cookies");
@@ -37,8 +50,10 @@ export const CPProviderComponent = ({ children }) => {
             payload,
             cookies: cookiesResponse.data.cookies,
           })
+          .then(() => setApiCompleted((prev) => prev + 1))
           .catch((error) => {
             console.error(`Error fetching cpData for id ${i}:`, error);
+            setApiCompleted((prev) => prev + 1);
           });
 
         const promise2 = axios
@@ -46,12 +61,15 @@ export const CPProviderComponent = ({ children }) => {
             payload,
             cookies: cookiesResponse.data.cookies,
           })
+          .then(() => setApiCompleted((prev) => prev + 1))
           .catch((error) => {
             console.error(`Error fetching cpDataCall for id ${i}:`, error);
+            setApiCompleted((prev) => prev + 1);
           });
 
         promises.push(Promise.all([promise, promise2]));
-        await delay(time);
+        // Use the latest time value from the ref
+        await delay(timeRef.current);
       }
 
       const cpResponses = await Promise.all(promises);
@@ -117,6 +135,9 @@ export const CPProviderComponent = ({ children }) => {
         isCancelled,
         currentI, // Expose currentI
         isFetching, // Expose isFetching
+        timeRef, // Expose timeRef if needed elsewhere
+        // apiTotal,
+        apiCompleted,
       }}
     >
       {children}
