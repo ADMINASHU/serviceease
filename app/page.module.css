@@ -1,3 +1,11 @@
+/* Style for the slider value */
+.slider-value {
+  color: #1976d2; /* A visible blue, change as needed */
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-left: 5px;
+  vertical-align: middle;
+}
 .form-container {
   background: #fff;
   border-radius: 18px;

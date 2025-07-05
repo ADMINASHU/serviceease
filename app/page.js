@@ -10,7 +10,20 @@ import { useNewDataContext } from "@/components/DataProviderComponent";
 const Home = () => {
   const { months, setMonths, year, setYear } = useContext(DataContext);
   const { fetchUserData } = useUserContext();
-  const { fetchCPData, setStart, setEnd, start, end, cancelFetch, resetCancel, isCancelled, currentI, isFetching } = useCPContext();
+  const {
+    fetchCPData,
+    setStart,
+    setEnd,
+    start,
+    end,
+    cancelFetch,
+    resetCancel,
+    isCancelled,
+    currentI,
+    isFetching,
+    time,
+    setTime,
+  } = useCPContext();
   const { fetchData } = useNewDataContext();
 
   const [localMonths, setLocalMonths] = useState([]);
@@ -85,8 +98,12 @@ const Home = () => {
       </form>
       <hr className={styles["section-divider"]} />
       <div className={styles["fetch-row"]}>
-        <button onClick={fetchData} className={styles["fetch-btn"]}>Fetch Data</button>
-        <button onClick={fetchUserData} className={styles["user-btn"]}>Fetch Users Data</button>
+        <button onClick={fetchData} className={styles["fetch-btn"]}>
+          Fetch Data
+        </button>
+        <button onClick={fetchUserData} className={styles["user-btn"]}>
+          Fetch Users Data
+        </button>
       </div>
       <hr className={styles["section-divider"]} />
       <div className={styles["cp-header-row"]}>
@@ -95,9 +112,7 @@ const Home = () => {
           Status: {isCancelled ? "Cancelled" : isFetching ? "Running" : "Normal"}
         </span>
         {currentI !== null && (
-          <span className={styles["processing-id"]}>
-            Processing ID: {currentI}
-          </span>
+          <span className={styles["processing-id"]}>Processing ID: {currentI}</span>
         )}
       </div>
       <div className={styles["range-row"]}>
@@ -115,13 +130,18 @@ const Home = () => {
           onChange={(e) => setEnd(e.target.value)}
           placeholder="End"
         />
+        <input
+          type="range"
+          min="1"
+          max="1000"
+          value={time}
+          onChange={(e) => setTime(Number(e.target.value))}
+          className={styles["slider"]}
+        />
+        <span className={styles["slider-value"]}>{time} msec</span>
       </div>
       <div className={styles["button-row"]}>
-        <button
-          onClick={fetchCPData}
-          className={styles["cp-btn"]}
-          disabled={isFetching}
-        >
+        <button onClick={fetchCPData} className={styles["cp-btn"]} disabled={isFetching}>
           {isFetching ? "Fetching..." : "Fetch CP Data"}
         </button>
         <button

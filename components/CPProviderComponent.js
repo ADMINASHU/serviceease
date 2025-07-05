@@ -7,6 +7,7 @@ const CPContext = createContext();
 export const CPProviderComponent = ({ children }) => {
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
+  const [time, setTime] = useState(300); // Track time taken for fetching
   const [isCancelled, setIsCancelled] = useState(false);
   const [currentI, setCurrentI] = useState(null); // Track current i value
   const [isFetching, setIsFetching] = useState(false); // Add fetching state
@@ -50,7 +51,7 @@ export const CPProviderComponent = ({ children }) => {
           });
 
         promises.push(Promise.all([promise, promise2]));
-        await delay(280);
+        await delay(time);
       }
 
       const cpResponses = await Promise.all(promises);
@@ -108,6 +109,8 @@ export const CPProviderComponent = ({ children }) => {
         start,
         end,
         setStart,
+        setTime,
+        time,
         setEnd,
         cancelFetch,
         resetCancel,

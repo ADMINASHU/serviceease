@@ -59,7 +59,12 @@ function generateSingleIndentPDF2() {
 
   function getFeatures(featuresStr, feature) {
     if (!featuresStr) return "X";
-    var features = featuresStr.toString().toUpperCase().split(/,|\s+/);
+    var features = featuresStr.toString().split(/,|\s+/);
+    return features.includes(feature) ? "Y" : "X";
+  }
+  function getFeatures2(featuresStr2, feature) {
+    if (!featuresStr2) return "X";
+    var features = featuresStr2.toString().split(/,|\s+/);
     return features.includes(feature) ? "Y" : "X";
   }
   function safeVal2(arr, idx) {
@@ -100,11 +105,16 @@ function generateSingleIndentPDF2() {
       })
     );
   }
+  var tbbValue = safeVal2(data, 24) + safeVal2(dataB, 24) + safeVal2(dataR, 24) + safeVal2(dataC, 24);
+  var tbvValue = safeVal2(data, 25) + safeVal2(dataB, 25) + safeVal2(dataR, 25) + safeVal2(dataC, 25);
+  var ttxValue = safeVal2(data, 26) + safeVal2(dataB, 26) + safeVal2(dataR, 26) + safeVal2(dataC, 26);
   var totpValue = safeVal2(data, 28) + safeVal2(dataB, 28) + safeVal2(dataR, 28) + safeVal2(dataC, 28);
+  var tbrValue = safeVal2(data, 29) + safeVal2(dataB, 29) + safeVal2(dataR, 29) + safeVal2(dataC, 29);
   var tovValue = safeVal2(data, 27) + safeVal2(dataB, 27) + safeVal2(dataR, 27) + safeVal2(dataC, 27);
   var conValue = safeVal2(data, 30) + safeVal2(dataB, 30) + safeVal2(dataR, 30) + safeVal2(dataC, 30);
 
     var featureStr = data[13];
+    var featureStr2 = dataB[13];
   // Map table fields for each product type row (data, dataB, dataR, dataC)
   var placeholderMap = {
     "{{INDENT}}": data[1],
@@ -113,7 +123,7 @@ function generateSingleIndentPDF2() {
     "{{GROUP}}": data[2],
     "{{BRANCH}}": data[3],
     "{{OWNER}}": data[4],
-    "{{REVBY}}": data[31],
+    "{{APVPCO}}": data[31],
     "{{REVDATE}}": Utilities.formatDate(
       new Date(data[32]),
       Session.getScriptTimeZone(),
@@ -128,29 +138,41 @@ function generateSingleIndentPDF2() {
     ),
     "{{PRODUCT}}": data[7],
     "{{RAT}}": data[8],
-    "{{A}}": data[14],
-    "{{VOLT}}": data[12],
+    "{{A}}": data[14] + " A",
+    "{{VOLT}}": data[12] + " V",
     "{{PF}}": data[11],
-    "{{QTY}}": data[10],
+    "{{QTY}}": data[10] + " Nos",
     "{{PHASE}}": data[9],
+    "{{MODEL}}": data[47], //-------------------------------------------------------------------------------------------------
+    "{{DRBDATE}}": data[47], //-------------------------------------------------------------------------------------------------
+    "{{DPDATE}}": data[47], //-------------------------------------------------------------------------------------------------
+
     "{{v1}}": getFeatures(featureStr, "HSB"),
     "{{v2}}": getFeatures(featureStr, "PRS"),
     "{{v3}}": getFeatures(featureStr, "LCD"),
-    "{{v4}}": getFeatures(featureStr, "SW"),
-    "{{v5}}": getFeatures(featureStr, "SBS"),
+    "{{v4}}": getFeatures(featureStr, "RS232"),
+    "{{v5}}": getFeatures(featureStr, "BISBS"),
     "{{v6}}": getFeatures(featureStr, "SNMP"),
     "{{v7}}": getFeatures(featureStr, "MB"),
     "{{v8}}": getFeatures(featureStr, "CBB"),
-    "{{v9}}": data[47], // Z8
-    "{{WARR}}": data[17],
-    "{{v10}}": data[47], // AB8
+
+    "{{v14}}": getFeatures(featureStr, "PBB"),
+    "{{v15}}": getFeatures(featureStr, "CTBB"),
+    "{{v16}}": getFeatures(featureStr, "ESBS"),
+  
+    "{{v9}}":  getFeatures(featureStr, "ETR"),
+    "{{WARR}}": data[17] + " Yr",
+    "{{v10}}":  getFeatures(featureStr, "SENC"),
     "{{TYPE}}": dataB !== null && dataB[16],
     "{{MAKE}}": dataB !== null && dataB[15],
     "{{CAP}}": dataB !== null && dataB[8],
-    "{{BQTY}}": dataB !== null && dataB[10],
-    "{{BWARR}}": dataB !== null && dataB[17],
-    "{{v11}}": dataR !== null && dataR[7] ? "Y" : "X",
-    "{{v12}}": data[47], // AJ8
+    "{{BQTY}}": dataB !== null && dataB[10] + " Nos",
+    "{{BWARR}}": dataB !== null && dataB[17] + " Yr",
+    "{{v11}}":  getFeatures2(featureStr2, "Battery-Stand"),
+    "{{v12}}":  getFeatures2(featureStr2, "Battery-Box"),
+    "{{v13}}":  data[39] === "APPROVED" ? "Y" :"X",
+    "{{v17}}":  getFeatures2(featureStr2, "Inter-Lnk-Cable"),
+
     "{{DRDATE}}": data[47], // AK8
     "{{CPERSON}}": data[19],
     "{{CNUM}}": data[47], // AM8
@@ -161,9 +183,11 @@ function generateSingleIndentPDF2() {
     "{{BILLADDRESS}}": data[22],
     "{{OV}}": data[47], // AS8
     "{{OTAX}}": data[47], // AT8
-    "{{TQTY}}": data[47], // AW8
-    "{{TTAX}}": data[47], // AX8
-    "{{TP}}": data[47], // AY8
+
+    "{{BBR}}": "₹" + parseFloat(tbrValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    "{{TBB}}": "₹" + parseFloat(tbbValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    "{{TBV}}": "₹" + parseFloat(tbvValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    "{{TTX}}": "₹" + parseFloat(ttxValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     "{{TOV}}": "₹" + parseFloat(tovValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     "{{TOTP}}": "₹" + parseFloat(totpValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     "{{CON}}":  "₹" + parseFloat(conValue).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -175,7 +199,7 @@ function generateSingleIndentPDF2() {
     ),
     // Table row 1: data (UPS/INVERTER/SERVO)
     "{{a1}}": safeVal(data, 25), // Z
-    "{{b1}}": safeVal(data, 26), // AA
+    "{{b1}}": safeVal(data, 24), // AA
     "{{c1}}": safeVal(data, 7), // H
     "{{d1}}": rateVal(safeVal2(data, 28), safeVal2(data, 26), safeVal2(data, 10)),
     "{{e1}}": safeVal2(data, 10), // K
@@ -184,7 +208,7 @@ function generateSingleIndentPDF2() {
 
     // Table row 2: dataB (BATTERY)
     "{{a2}}": safeVal(dataB, 25),
-    "{{b2}}": safeVal(dataB, 26),
+    "{{b2}}": safeVal(dataB, 24),
     "{{c2}}": safeVal(dataB, 7),
     "{{d2}}": rateVal(safeVal2(dataB, 28), safeVal2(dataB, 26), safeVal2(dataB, 10)),
     "{{e2}}": safeVal2(dataB, 10),
@@ -193,7 +217,7 @@ function generateSingleIndentPDF2() {
 
     // Table row 3: dataR (RACK)
     "{{a3}}": safeVal(dataR, 25),
-    "{{b3}}": safeVal(dataR, 26),
+    "{{b3}}": safeVal(dataR, 24),
     "{{c3}}": safeVal(dataR, 7),
     "{{d3}}": rateVal(safeVal2(dataR, 28), safeVal2(dataR, 26), safeVal2(dataR, 10)),
     "{{e3}}": safeVal2(dataR, 10),
@@ -202,7 +226,7 @@ function generateSingleIndentPDF2() {
 
     // Table row 4: dataC (CABLE)
     "{{a4}}": safeVal(dataC, 25),
-    "{{b4}}": safeVal(dataC, 26),
+    "{{b4}}": safeVal(dataC, 24),
     "{{c4}}": safeVal(dataC, 7),
     "{{d4}}": rateVal(safeVal2(dataC, 28), safeVal2(dataC, 26), safeVal2(dataC, 10)),
     "{{e4}}": safeVal2(dataC, 10),
