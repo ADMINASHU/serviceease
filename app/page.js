@@ -43,8 +43,6 @@ const Home = () => {
         } else if (diff <= 5) {
           setTime((prev) => (prev > 1 ? Math.max(1, prev - 1) : prev));
         }
-      }else {
-        setTime(300); // Reset to default when not fetching
       }
     }
     if (isFetching) {
