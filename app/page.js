@@ -27,6 +27,32 @@ const Home = () => {
   } = useCPContext();
   const { fetchData } = useNewDataContext();
 
+  // Auto-control time value based on apiCompleted and currentI
+  useEffect(() => {
+    let intervalId;
+    function adjustTime() {
+      const completedI = Math.floor(apiCompleted / 2);
+      const diff = currentI - completedI;
+      // console.log(diff, "diff");
+      // console.log(currentI, "currentI");
+      // console.log(apiCompleted, "apiCompleted");
+      if (isFetching) {
+        if (diff > 10) {
+          setTime((prev) => (prev < 1000 ? Math.min(1000, prev + 1) : prev));
+        } else if (diff <= 10) {
+          setTime((prev) => (prev > 1 ? Math.max(1, prev - 1) : prev));
+        }
+      }
+    }
+    if (isFetching) {
+      intervalId = setInterval(adjustTime, 50);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+    // Remove 'time' from dependencies
+  }, [isFetching, apiCompleted, currentI]);
+
   const [localMonths, setLocalMonths] = useState([]);
   const [localYear, setLocalYear] = useState("");
 
@@ -152,7 +178,7 @@ const Home = () => {
           {isCancelled ? "Reset" : "Cancel"}
         </button>
         <span className={styles["slider-value"]}>
-          Completed: {apiCompleted/2}
+          Completed: {Math.floor(apiCompleted / 2)}
         </span>
       </div>
     </div>
